@@ -1,0 +1,1789 @@
+<title>Talent Workbench</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* ============ TOKENS — shared with the Governance module system ============ */
+:root{
+  --paper:#f6f7f4; --surface:#ffffff; --surface-2:#eef1ec;
+  --ink:#1a2420; --ink-soft:#5c675f; --ink-faint:#8b968d;
+  --line:#e1e5df; --line-strong:#cfd6cb;
+  --accent:#155349; --accent-ink:#0d3a33; --accent-soft:#e5eeea; --accent-line:rgba(21,83,73,.35);
+  --warm:#6f5aa8; --warm-ink:#4a3b73; --warm-soft:#ece7f6; --warm-line:rgba(111,90,168,.35);
+  --success:#2f9e63; --success-soft:#e5f5ec;
+  --warning:#c67a2a; --warning-soft:#faeedd;
+  --critical:#c8493b; --critical-soft:#fae7e4;
+  --info:#3d6fa8; --info-soft:#e6eef7;
+  --radius:12px; --radius-sm:8px;
+  --font-display:'Manrope',system-ui,sans-serif;
+  --font-body:'Public Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --shadow-card:0 1px 2px rgba(20,30,25,.04), 0 4px 14px rgba(20,30,25,.05);
+  --shadow-pop:0 12px 32px -8px rgba(18,30,26,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#121613; --surface:#181d19; --surface-2:#1e2420;
+    --ink:#e9ede9; --ink-soft:#a7b1a7; --ink-faint:#727d73;
+    --line:#2a322c; --line-strong:#3a453d;
+    --accent:#5fb3a1; --accent-ink:#8fd0c0; --accent-soft:#1c2e2a; --accent-line:rgba(95,179,161,.4);
+    --warm:#a996d6; --warm-ink:#c9bcec; --warm-soft:#2a2440; --warm-line:rgba(169,150,214,.4);
+    --success:#4cb87c; --success-soft:#173325;
+    --warning:#d99a4f; --warning-soft:#332617;
+    --critical:#e07564; --critical-soft:#33201c;
+    --info:#7fa8d6; --info-soft:#1c2632;
+    --shadow-card:0 1px 2px rgba(0,0,0,.3), 0 8px 20px rgba(0,0,0,.35);
+    --shadow-pop:0 12px 32px -8px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121613; --surface:#181d19; --surface-2:#1e2420;
+  --ink:#e9ede9; --ink-soft:#a7b1a7; --ink-faint:#727d73;
+  --line:#2a322c; --line-strong:#3a453d;
+  --accent:#5fb3a1; --accent-ink:#8fd0c0; --accent-soft:#1c2e2a; --accent-line:rgba(95,179,161,.4);
+  --warm:#a996d6; --warm-ink:#c9bcec; --warm-soft:#2a2440; --warm-line:rgba(169,150,214,.4);
+  --success:#4cb87c; --success-soft:#173325;
+  --warning:#d99a4f; --warning-soft:#332617;
+  --critical:#e07564; --critical-soft:#33201c;
+  --info:#7fa8d6; --info-soft:#1c2632;
+  --shadow-card:0 1px 2px rgba(0,0,0,.3), 0 8px 20px rgba(0,0,0,.35);
+  --shadow-pop:0 12px 32px -8px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:800;margin:0;text-wrap:balance;color:var(--ink);}
+p{margin:0;}
+a{color:inherit;text-decoration:none;}
+button{font-family:var(--font-body);}
+::selection{background:var(--accent-soft);}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
+.scrollx{overflow-x:auto;}
+table{border-collapse:collapse;width:100%;}
+svg.icon{width:18px;height:18px;flex-shrink:0;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+/* ============ SHELL ============ */
+#app{display:grid;grid-template-columns:226px 1fr;min-height:100vh;max-width:1440px;margin:0 auto;}
+.sidebar{background:var(--surface);border-right:1px solid var(--line);padding:22px 14px;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px;}
+.brand-mark{width:32px;height:32px;border-radius:9px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:15px;flex:none;}
+.brand-text .b1{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--ink);line-height:1.2;}
+.brand-text .b2{font-size:11px;color:var(--ink-faint);}
+.nav-group{display:flex;flex-direction:column;gap:2px;}
+.nav-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);padding:8px 10px 4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--ink-soft);font-size:13.5px;font-weight:600;cursor:pointer;width:100%;border:none;background:none;}
+.nav-item:hover{background:var(--surface-2);color:var(--ink);}
+.nav-item.active{background:var(--accent-soft);color:var(--accent-ink);}
+.nav-item .ic{display:flex;flex:none;color:inherit;opacity:.9;}
+.nav-item .ic svg{width:18px;height:18px;}
+.nav-count{margin-left:auto;font-family:var(--font-mono);font-size:10.5px;font-weight:700;background:var(--surface-2);padding:1px 7px;border-radius:20px;color:var(--ink-faint);}
+.nav-item.active .nav-count{background:rgba(255,255,255,.5);color:var(--accent-ink);}
+.sidebar-foot{margin-top:auto;padding:10px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-faint);line-height:1.5;}
+
+.main{min-width:0;display:flex;flex-direction:column;}
+.topbar{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.topbar h1{font-size:16.5px;}
+.client-chip{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:20px;background:var(--surface-2);font-size:12.5px;font-weight:700;color:var(--ink);border:1px solid var(--line);}
+.client-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex:none;}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-faint);flex:none;min-width:0;overflow-x:auto;white-space:nowrap;padding:10px 28px 0;}
+.crumbs button{background:none;border:none;padding:0;font-family:var(--font-body);font-size:12.5px;color:var(--ink-faint);cursor:pointer;font-weight:600;}
+.crumbs button:hover{color:var(--accent);text-decoration:underline;}
+.crumbs .current{color:var(--ink);font-weight:600;}
+.crumbs .sep{color:var(--line-strong);}
+.topbar-tools{display:flex;align-items:center;gap:14px;margin-left:auto;}
+.role-pick{display:flex;flex-direction:column;gap:2px;}
+.role-pick .rp-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);display:flex;align-items:center;gap:5px;padding-left:2px;}
+.role-pick select{font-family:var(--font-body);font-weight:600;font-size:12.5px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 26px 6px 10px;cursor:pointer;}
+.info-dot{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:var(--surface-2);color:var(--ink-faint);font-size:9px;font-weight:800;font-family:var(--font-mono);border:1px solid var(--line);cursor:help;flex:none;}
+.icon-btn{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--ink-soft);}
+.icon-btn:hover{background:var(--surface-2);}
+.dot-flag{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--critical);border:1.5px solid var(--surface);}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:12.5px;flex:none;}
+.content{padding:22px 28px 70px;max-width:1180px;width:100%;}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px;flex-wrap:wrap;}
+.page-head h1{font-size:23px;}
+.page-sub{color:var(--ink-soft);font-size:13.5px;margin-top:8px;max-width:64ch;}
+.eyebrow{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.02em;margin-bottom:4px;}
+
+/* ============ COMPONENTS ============ */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-card);}
+.card-pad{padding:20px 22px;}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);gap:10px;}
+.card-head h3{font-size:15px;font-family:var(--font-display);font-weight:700;}
+.card-head .hint{font-size:11.5px;color:var(--ink-faint);}
+.grid{display:grid;gap:14px;}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:1000px){.grid-4{grid-template-columns:repeat(2,1fr);}.grid-3{grid-template-columns:repeat(2,1fr);}}
+
+.stat{padding:16px 18px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow-card);display:flex;flex-direction:column;gap:6px;}
+.stat .n{font-family:var(--font-display);font-size:27px;font-weight:800;letter-spacing:-.01em;}
+.stat .l{font-size:12px;color:var(--ink-soft);font-weight:600;}
+.stat .t{font-size:11px;color:var(--ink-faint);}
+
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.badge .pdot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;}
+.b-slate{background:var(--surface-2);color:var(--ink-faint);}
+.b-accent{background:var(--accent-soft);color:var(--accent-ink);}
+.b-warm{background:var(--warm-soft);color:var(--warm-ink);}
+.b-success{background:var(--success-soft);color:var(--success);}
+.b-warning{background:var(--warning-soft);color:var(--warning);}
+.b-critical{background:var(--critical-soft);color:var(--critical);}
+.b-info{background:var(--info-soft);color:var(--info);}
+.ai-chip{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;color:var(--warm-ink);background:var(--warm-soft);border:1px dashed var(--warm-line);padding:3px 9px 3px 7px;border-radius:20px;}
+.bdr-chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--warning);background:var(--warning-soft);border:1px dashed var(--warning);padding:3px 9px;border-radius:20px;cursor:help;}
+.rbac-chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.rbac-chip .pdot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;}
+
+.btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-body);font-weight:700;font-size:13px;padding:9px 16px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;}
+.btn:hover{background:var(--surface-2);}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-ink);}
+.btn-critical{background:var(--critical);border-color:var(--critical);color:#fff;}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:7px;}
+.btn[disabled]{opacity:1;cursor:not-allowed;background:var(--surface-2);color:var(--ink-faint);border-color:var(--line);}
+.btn .lock{opacity:.8;}
+
+.capbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin-bottom:18px;}
+.capbar .who{font-size:11.5px;color:var(--ink-faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:2px;}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto;}
+.tab{padding:10px 14px;font-size:13px;font-weight:700;color:var(--ink-faint);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.tab:hover{color:var(--ink);}
+.tab.active{color:var(--accent);border-color:var(--accent);}
+
+.stepper{display:flex;align-items:flex-start;gap:0;margin:6px 0 20px;overflow-x:auto;padding-bottom:6px;}
+.step{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:78px;position:relative;cursor:pointer;flex:1;text-align:center;}
+.step .dotc{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:11.5px;font-weight:800;border:2px solid var(--line-strong);background:var(--surface-2);color:var(--ink-faint);z-index:1;}
+.step.done .dotc{background:var(--accent);border-color:var(--accent);color:#fff;}
+.step.current .dotc{background:var(--surface);border-color:var(--accent);color:var(--accent);}
+.step .line{position:absolute;top:14px;left:-50%;width:100%;height:2px;background:var(--line-strong);z-index:0;}
+.step.done .line{background:var(--accent);}
+.step:first-child .line{display:none;}
+.step .lbl{font-size:10px;text-align:center;color:var(--ink-faint);line-height:1.25;max-width:86px;font-weight:600;}
+.step.current .lbl{color:var(--ink);}
+.step.done .lbl{color:var(--ink-soft);}
+
+table.dt{font-size:13px;}
+table.dt th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);padding:0 12px 10px;border-bottom:1px solid var(--line);font-weight:700;white-space:nowrap;}
+table.dt td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top;}
+table.dt tr:last-child td{border-bottom:none;}
+table.dt tbody tr.link:hover{background:var(--surface-2);cursor:pointer;}
+.name-cell .primary{font-weight:700;color:var(--ink);}
+.name-cell .secondary{font-size:11.5px;color:var(--ink-faint);}
+
+.kv{display:grid;grid-template-columns:170px 1fr;gap:10px 14px;font-size:13px;}
+.kv dt{color:var(--ink-faint);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;}
+.kv dd{margin:0;color:var(--ink);}
+
+.notepop{position:absolute;top:52px;right:26px;width:340px;max-height:70vh;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-pop);z-index:40;}
+.notepop h4{padding:12px 16px;border-bottom:1px solid var(--line);font-family:var(--font-display);font-size:13px;font-weight:700;}
+.note-item{padding:11px 16px;border-bottom:1px solid var(--line);font-size:12.5px;cursor:pointer;}
+.note-item:hover{background:var(--surface-2);}
+.note-item:last-child{border:none;}
+.note-item .t{font-weight:700;margin-bottom:2px;}
+.note-item .d{color:var(--ink-soft);}
+.note-item .m{color:var(--ink-faint);font-size:11px;margin-top:4px;}
+
+.callout{border-radius:var(--radius);padding:14px 16px;font-size:13px;display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);}
+.callout svg{margin-top:1px;flex:none;}
+.callout b{display:block;font-size:13.5px;margin-bottom:2px;color:var(--ink);}
+.callout.warm{background:var(--warm-soft);color:var(--warm-ink);}
+.callout.info{background:var(--info-soft);color:var(--info);}
+.callout.warning{background:var(--warning-soft);color:var(--warning);}
+
+.empty{padding:40px 20px;text-align:center;color:var(--ink-faint);font-size:13px;}
+.divider{height:1px;background:var(--line);margin:18px 0;}
+.section-title{font-family:var(--font-display);font-size:17px;font-weight:800;margin:26px 0 12px;}
+.section-title:first-child{margin-top:0;}
+.subhead{font-family:var(--font-display);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:18px 0 8px;}
+.subhead:first-child{margin-top:0;}
+.pill-row{display:flex;flex-wrap:wrap;gap:6px;}
+.skill-chip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--surface-2);border:1px solid var(--line);}
+.skill-chip.match{background:var(--success-soft);color:var(--success);border-color:transparent;}
+.skill-chip.missing{background:var(--critical-soft);color:var(--critical);border-color:transparent;}
+.progress{height:7px;border-radius:5px;background:var(--surface-2);overflow:hidden;}
+.progress > i{display:block;height:100%;background:var(--accent);border-radius:5px;}
+.tooltip-wrap{position:relative;display:inline-flex;}
+
+/* ---- compact / progressive-disclosure components ---- */
+.note-line{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-faint);margin:2px 0 14px;}
+
+details.acc{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow-card);}
+details.acc>summary{list-style:none;cursor:pointer;padding:13px 18px;display:flex;align-items:center;gap:10px;font-size:13.5px;}
+details.acc>summary::-webkit-details-marker{display:none;}
+details.acc>summary:hover{background:var(--surface-2);}
+details.acc>summary .chev{transition:transform .15s;color:var(--ink-faint);flex:none;width:14px;height:14px;}
+details.acc[open]>summary .chev{transform:rotate(180deg);}
+details.acc>summary .s-title{font-family:var(--font-display);font-weight:700;flex:none;}
+details.acc>summary .s-sum{color:var(--ink-faint);font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+details.acc[open]>summary{border-bottom:1px solid var(--line);}
+details.acc .acc-body{padding:18px;}
+
+.perm-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;}
+.perm-group{border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px 14px;background:var(--surface-2);}
+.perm-group.pg-edit{border-left:3px solid var(--accent);}
+.perm-group.pg-approve{border-left:3px solid var(--warning);}
+.perm-group.pg-view{border-left:3px solid var(--info);}
+.perm-group.pg-none{border-left:3px solid var(--line-strong);opacity:.75;}
+.perm-group h5{margin:0 0 8px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);display:flex;align-items:center;gap:6px;}
+.perm-group h5 .pdot{width:6px;height:6px;border-radius:50%;flex:none;background:var(--line-strong);}
+.perm-group.pg-edit h5 .pdot{background:var(--accent);}
+.perm-group.pg-approve h5 .pdot{background:var(--warning);}
+.perm-group.pg-view h5 .pdot{background:var(--info);}
+.perm-group ul{margin:0;padding-left:16px;font-size:12.5px;display:flex;flex-direction:column;gap:4px;}
+.perm-group .empty-mini{font-size:12px;color:var(--ink-faint);font-style:italic;}
+td.my-col{background:var(--accent-soft)!important;}
+th.my-col{background:var(--accent-soft)!important;color:var(--accent-ink)!important;border-radius:6px 6px 0 0;}
+
+footer.app-foot{padding:20px 28px 60px;color:var(--ink-faint);font-size:11.5px;max-width:640px;}
+
+@media (max-width:880px){
+  #app{grid-template-columns:1fr;}
+  .sidebar{position:static;height:auto;flex-direction:row;flex-wrap:wrap;}
+}
+</style>
+<div id="app">
+  <nav class="sidebar" id="sidebar"></nav>
+  <div class="main">
+    <div class="topbar">
+      <h1>Talent Workbench</h1>
+      <div class="client-chip"><span class="dot"></span>Meridian Systems GCC</div>
+      <div class="topbar-tools">
+        <div class="role-pick">
+          <label class="rp-label" for="roleSel">Viewing as <span class="info-dot" title="RM and Chief of Staff are equal-purpose engagement-management roles in this prototype and receive equivalent access (§8).">i</span></label>
+          <select id="roleSel"></select>
+        </div>
+        <button class="icon-btn" id="notifBtn" title="Notifications" aria-label="Notifications">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5h-15S6 13 6 9Z"/><path d="M10 18a2.2 2.2 0 0 0 4 0"/></svg>
+          <span class="dot-flag" id="notifDot"></span>
+        </button>
+        <div class="avatar" id="avatar">RM</div>
+      </div>
+    </div>
+    <div class="crumbs" id="crumbs"></div>
+    <div id="notifPanel" style="display:none;"></div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+<script>
+/* =====================================================================
+   TALENT WORKBENCH — interactive prototype
+   Source: Dewdrop "Talent Module" Functional Requirements Document
+   Every workflow stage, status value, RBAC grant, notification, audit
+   entry and Location-Intelligence field below is taken verbatim from
+   the FRD. Sample requisitions / candidates / dates / names are
+   illustrative demo data only — flagged where relevant.
+   Anything the FRD itself left open is rendered with a "Business
+   Decision Required" flag rather than a silently invented rule.
+   ===================================================================== */
+
+const ROLES = ["Client","Consultant","RM","Executive Sponsor","Chief of Staff","Project Admin"];
+const ROLE_INFO = {
+  "Client": {tag:"Client-side", blurb:"Provides hiring requirements and participates in approvals and interviews."},
+  "Consultant": {tag:"6S-side", blurb:"Executes day-to-day recruitment activity: drafts requisitions, JDs and posts; enters candidates; reviews AI-generated outputs; records evaluations."},
+  "RM": {tag:"6S-side", blurb:"Owns the day-to-day GCC relationship. Primary Governance/Talent engagement-management user, equal in purpose to Chief of Staff."},
+  "Executive Sponsor": {tag:"Client-side leader", blurb:"Reviews and approves requisitions, budgets or hiring decisions where the approval hierarchy requires sponsor-level sign-off; monitors overall hiring progress."},
+  "Chief of Staff": {tag:"6S-side", blurb:"Manages and coordinates the client engagement and Talent process from the 6S side — same role purpose as RM for Talent engagement management."},
+  "Project Admin": {tag:"Administrative", blurb:"Monitors requisition and posting status for administrative purposes. Read/monitoring access; does not typically originate or approve hiring content."}
+};
+
+/* Section 12 — Role-Based Access Control matrix.
+   E = Edit/Create, A = Approve, V = View, - = No access.
+   * = subject to the approval hierarchy / thresholds (Section 21, Business Decision Required) */
+const RBAC = {
+  "Submit Client Requirements":        {Client:"E", Consultant:"V", RM:"V", "Executive Sponsor":"V", "Chief of Staff":"V", "Project Admin":"-"},
+  "Create / Edit Requisition":         {Client:"-", Consultant:"E", RM:"E", "Executive Sponsor":"V", "Chief of Staff":"E", "Project Admin":"V"},
+  "Approve Requisition*":              {Client:"A", Consultant:"-", RM:"A", "Executive Sponsor":"A", "Chief of Staff":"A", "Project Admin":"-"},
+  "Edit Budget":                       {Client:"E", Consultant:"E", RM:"E", "Executive Sponsor":"V", "Chief of Staff":"E", "Project Admin":"V"},
+  "View Location Intelligence Market Data": {Client:"V", Consultant:"V", RM:"V", "Executive Sponsor":"V", "Chief of Staff":"V", "Project Admin":"-"},
+  "Override AI Salary Recommendation": {Client:"-", Consultant:"E", RM:"E", "Executive Sponsor":"V", "Chief of Staff":"E", "Project Admin":"-"},
+  "Generate / Edit JD":                {Client:"V", Consultant:"E", RM:"E", "Executive Sponsor":"V", "Chief of Staff":"E", "Project Admin":"-"},
+  "Approve JD*":                       {Client:"A", Consultant:"-", RM:"A", "Executive Sponsor":"A", "Chief of Staff":"A", "Project Admin":"-"},
+  "Create / Edit LinkedIn Post":       {Client:"-", Consultant:"E", RM:"E", "Executive Sponsor":"-", "Chief of Staff":"V", "Project Admin":"-"},
+  "Approve LinkedIn Post*":            {Client:"-", Consultant:"-", RM:"A", "Executive Sponsor":"-", "Chief of Staff":"A", "Project Admin":"-"},
+  "Add Candidate (App./Headhunting)":  {Client:"-", Consultant:"E", RM:"E", "Executive Sponsor":"-", "Chief of Staff":"E", "Project Admin":"-"},
+  "View Candidate Pipeline":           {Client:"V", Consultant:"E", RM:"E", "Executive Sponsor":"V", "Chief of Staff":"E", "Project Admin":"V"},
+  "View Duplicate Flags":              {Client:"-", Consultant:"E", RM:"V", "Executive Sponsor":"-", "Chief of Staff":"E", "Project Admin":"V"},
+  "View Resume vs. JD Score":          {Client:"V", Consultant:"E", RM:"V", "Executive Sponsor":"V", "Chief of Staff":"V", "Project Admin":"-"},
+  "Generate / Edit Screening Questions":{Client:"-", Consultant:"E", RM:"V", "Executive Sponsor":"-", "Chief of Staff":"V", "Project Admin":"-"},
+  "View Screening Evaluation":         {Client:"-", Consultant:"E", RM:"V", "Executive Sponsor":"-", "Chief of Staff":"V", "Project Admin":"-"},
+  "View / Override Shortlist (Top-K)": {Client:"V", Consultant:"E", RM:"E", "Executive Sponsor":"V", "Chief of Staff":"E", "Project Admin":"-"},
+  "Schedule / Manage Interview":       {Client:"V", Consultant:"E", RM:"E", "Executive Sponsor":"V", "Chief of Staff":"E", "Project Admin":"-"},
+  "Record Interview Evaluation":       {Client:"E", Consultant:"E", RM:"E", "Executive Sponsor":"V", "Chief of Staff":"E", "Project Admin":"-"},
+  "Approve / Reject Hiring Decision*": {Client:"A", Consultant:"-", RM:"A", "Executive Sponsor":"A", "Chief of Staff":"A", "Project Admin":"-"},
+  "Update Offer Acceptance Status":    {Client:"V", Consultant:"E", RM:"E", "Executive Sponsor":"V", "Chief of Staff":"E", "Project Admin":"-"},
+  "Close Job Posting":                 {Client:"V", Consultant:"-", RM:"A", "Executive Sponsor":"V", "Chief of Staff":"A", "Project Admin":"V"},
+  "View Talent Dashboard":             {Client:"V", Consultant:"V", RM:"V", "Executive Sponsor":"V", "Chief of Staff":"V", "Project Admin":"V"},
+  "View Audit Trail":                  {Client:"-", Consultant:"-", RM:"V", "Executive Sponsor":"-", "Chief of Staff":"V", "Project Admin":"V"},
+};
+const RBAC_NOTES_RULE = {Client:"-", Consultant:"Own notes only", RM:"Full visibility", "Executive Sponsor":"-", "Chief of Staff":"No default access (§7 Governance precedent)", "Project Admin":"-"};
+
+const GRADE_LABEL = {E:"Edit / Create", A:"Approve", V:"View only", "-":"No access"};
+const GRADE_CLASS = {E:"b-accent", A:"b-warning", V:"b-slate", "-":"b-slate"};
+
+/* Section 9 — the 15 tracked recruitment lifecycle stages */
+const STAGES = [
+  {id:"requirements", n:1, name:"Requisition + Client Requirements", trigger:"A hiring need is identified for a GCC.", actor:"Client (provides requirements); Consultant or RM (creates the formal requisition record); Chief of Staff (visibility, co-drafting where applicable).", input:"Role/title, department, location, client requirements, required skills, experience, qualifications, hiring rationale, target timeline.", system:"Creates a Requisition record in Draft state, linked to the GCC.", ai:"None at this stage.", approval:"None yet — approval occurs after JD generation and budget capture (Stage 3).", output:"Draft Requisition record.", next:"Draft → Pending JD/Budget"},
+  {id:"jd", n:2, name:"JD Generation + Budget", trigger:"A Draft Requisition has sufficient client requirements captured.", actor:"Consultant (generates/edits JD, captures budget); RM and Chief of Staff (review).", input:"Requisition's client requirements; budget figures.", system:"Creates an editable JD draft and a Budget record linked to the Requisition.", ai:"Generates a first-draft JD from the approved/entered requirements. AI does not generate or infer the budget.", approval:"None yet — the JD and budget move to the Approval gate as part of Stage 3.", output:"Generated → Edited JD draft; captured Budget.", next:"Pending JD/Budget → Pending Approval"},
+  {id:"approval", n:3, name:"Approval", trigger:"Requisition, JD, and Budget are complete and submitted for approval.", actor:"RM and Chief of Staff (primary approvers); Executive Sponsor and/or Client where the approval hierarchy requires their sign-off (Business Decision Required).", input:"Completed Requisition, JD, and Budget.", system:"Routes the Requisition to the configured approver(s); records Approve / Reject / Return-for-Modification with timestamp and comments.", ai:"None — approval is a human action only.", approval:"Required. Exact approval hierarchy and any budget-based escalation thresholds are Business Decision Required.", output:"Approved, Rejected, or Returned-for-Modification Requisition.", next:"Pending Approval → Approved / Rejected / Returned for Modification"},
+  {id:"linkedin", n:4, name:"LinkedIn Post Creation using 6S Account", trigger:"Requisition is Approved.", actor:"Consultant (drafts post); RM and Chief of Staff (review/approve).", input:"Approved JD.", system:"Creates an editable LinkedIn post draft linked to the Requisition; publishes to LinkedIn using the 6S-owned account once approved.", ai:"Generates JD-derived post content as an editable draft.", approval:"Required before publishing.", output:"Draft → Approved LinkedIn post content.", next:"Job Posting: Not Started → Pending Publication"},
+  {id:"li-approval", n:5, name:"LinkedIn Post Approval", trigger:"LinkedIn post draft is submitted for approval.", actor:"RM or Chief of Staff.", input:"Draft LinkedIn post content.", system:"Records Approve/Reject with timestamp; on approval, publishes the post and records the posting timestamp; on publishing failure, flags an error state for retry.", ai:"None — approval is a human action only.", approval:"Required.", output:"Published LinkedIn post, or a rejected/returned draft.", next:"Job Posting: Pending Publication → Live / Rejected"},
+  {id:"intake", n:6, name:"Candidate Application / Manual Headhunting Entry", trigger:"A candidate applies via the published post, or is manually entered by Consultant/RM as a headhunted candidate.", actor:"Candidate (applies); Consultant or RM (manual entry).", input:"Candidate profile, resume/document, source, application timestamp, job association.", system:"Creates a Candidate record linked to the Job Posting/Requisition.", ai:"None at intake — scoring occurs in Stage 8.", approval:"None.", output:"New Candidate record.", next:"New → Pending Duplicate Check"},
+  {id:"duplicate", n:7, name:"Duplicate Detection", trigger:"A new Candidate record is created.", actor:"System (automated check); Consultant/RM/Chief of Staff (review of flagged duplicates).", input:"New Candidate record; existing candidate records for the same Requisition/GCC.", system:"Flags potential duplicates for human review. A duplicate flag never silently deletes or merges a candidate record.", ai:"AI/matching logic may assist in identifying likely duplicates as decision support.", approval:"Human review required to confirm or dismiss a duplicate flag; exact matching rules and merge policy are Business Decision Required.", output:"Candidate record marked Unique or Flagged – Possible Duplicate.", next:"Pending Duplicate Check → Unique / Flagged"},
+  {id:"scoring", n:8, name:"Resume vs. JD Scoring", trigger:"Candidate record is confirmed Unique (or a flagged duplicate is resolved).", actor:"System/AI (generates score); Consultant/RM (review, manual override).", input:"Candidate resume; Requisition JD.", system:"Computes and stores a Resume/JD Score with supporting evidence.", ai:"Scores resume-to-JD match, identifies matched/missing skills, and evaluates experience/qualification alignment with an explanation. The score is decision support, not an autonomous hiring decision, and is never presented as objective or bias-free.", approval:"None required to generate the score; manual review/override of the score is supported.", output:"Resume/JD Score with matched skills, missing skills, and explanation.", next:"Scored → Pending Screening"},
+  {id:"screening", n:9, name:"Screening", trigger:"Candidate has a Resume/JD Score and is selected for screening.", actor:"Consultant (conducts screening, reviews/edits questions); Candidate (responds).", input:"Approved JD/requirements; candidate profile.", system:"Creates a Screening session linked to the Candidate; captures transcript, recording (where available), and interviewer notes.", ai:"Generates screening questions from the approved JD/requirements, subject to reviewer editing.", approval:"None required to conduct screening; question edits are at Consultant discretion.", output:"Screening session with transcript/recording/notes.", next:"Pending Screening → Screened"},
+  {id:"screen-eval", n:10, name:"Screening Evaluation", trigger:"A Screening session has a transcript, recording, and/or notes captured.", actor:"System/AI (evaluation support); Consultant/RM (review).", input:"Screening transcript, recording, and/or notes.", system:"Stores the evaluation linked to the Screening session, distinguishing generated questions, candidate responses, transcript, recording, notes, and AI evaluation as separate, clearly labeled elements.", ai:"Evaluates the transcript/recording/notes against the screening questions as decision support.", approval:"None required; evaluation is reviewable and editable by Consultant/RM.", output:"Screening Evaluation record.", next:"Screened → Evaluated"},
+  {id:"shortlist", n:11, name:"Screening Score + Top-K Shortlist", trigger:"Candidates for a Requisition have completed Screening Evaluation.", actor:"System/AI (generates score and ranking); RM/Chief of Staff (review, manual override, shortlist confirmation where required).", input:"Screening Evaluation results across all screened candidates for the Requisition.", system:"Computes a Screening Score per candidate and generates a ranked Top-K shortlist.", ai:"Generates the screening score and ranking as decision support; ranking is not final without human review.", approval:"Manual override supported; shortlist approval, if required, is a configurable step (Business Decision Required). The value of K is Business Decision Required and must be configurable, not assumed.", output:"Ranked Top-K Shortlist.", next:"Evaluated → Shortlisted / Not Shortlisted"},
+  {id:"interviews", n:12, name:"Interview / Meetings", trigger:"A candidate is added to the shortlist.", actor:"Consultant/RM (schedules); Client, Executive Sponsor (participate in client rounds); Consultant/RM/technical staff (participate in technical rounds).", input:"Shortlisted candidate; interview type (client round, technical round).", system:"Creates an Interview record with participants, type, and status; captures notes, evaluation, and outcome per round.", ai:"None beyond the screening-stage AI assistance already captured; Talent does not expand into a generic calendar/meeting-management platform.", approval:"None required to schedule; outcome feeds the hiring decision in Stage 13.", output:"Interview record(s) with notes, evaluation, and outcome.", next:"Shortlisted → Interviewing → Interview Complete"},
+  {id:"decision", n:13, name:"Approve / Reject Decision", trigger:"All required interview rounds are complete for a candidate.", actor:"RM and Chief of Staff (primary decision-makers); Executive Sponsor and/or Client where the approval hierarchy requires their sign-off.", input:"Interview outcomes, screening evaluation, and resume/JD score.", system:"Records the final hiring decision (Pending Decision / Approved / Rejected) with authorized decision-maker, timestamp, and reason/comments.", ai:"None — AI never makes or influences the final hiring decision beyond the decision-support evidence already surfaced upstream.", approval:"Required; must be made by an authorized human decision-maker.", output:"Final Hiring Decision record.", next:"Interview Complete → Approved / Rejected"},
+  {id:"offer", n:14, name:"Offer Acceptance Status", trigger:"Candidate is Approved in the hiring decision.", actor:"Consultant/RM (updates status); Chief of Staff (visibility).", input:"Approved candidate; offer acceptance outcome as communicated outside the system.", system:"Tracks Offer Acceptance Status only (e.g., Pending / Accepted / Declined — exact status values Business Decision Required). Does not generate, issue, send, or negotiate the offer itself.", ai:"None.", approval:"None required to update status.", output:"Offer Acceptance Status record.", next:"Approved → Offer Pending → Offer Accepted / Offer Declined"},
+  {id:"closure", n:15, name:"Job Posting Closure", trigger:"The Requisition's hiring need is fulfilled, withdrawn, or otherwise concluded.", actor:"RM or Chief of Staff (initiates/approves closure).", input:"Final hiring status; closure reason.", system:"Records closure timestamp, reason, and final hiring status; updates the Job Posting status; applies the defined treatment to remaining candidates in the pipeline (treatment itself is Business Decision Required).", ai:"None.", approval:"Required (RM or Chief of Staff, per RBAC).", output:"Closed Job Posting record.", next:"Live → Closed · Requisition: Approved → Fulfilled / Withdrawn / Closed"},
+];
+
+/* Section 13 — Notifications */
+const NOTIFICATIONS_SPEC = [
+  {n:"Requisition Pending Approval", trigger:"Requisition submitted for approval.", to:"RM, Chief of Staff, and any additional approver per hierarchy."},
+  {n:"Requisition Approved / Rejected", trigger:"Approval decision recorded.", to:"Consultant, RM, Chief of Staff, Client."},
+  {n:"JD Pending Approval", trigger:"JD submitted for approval.", to:"RM, Chief of Staff."},
+  {n:"LinkedIn Post Pending Approval", trigger:"Post draft submitted for approval.", to:"RM, Chief of Staff."},
+  {n:"New Candidate", trigger:"Candidate applies or is manually entered.", to:"Consultant, RM, Chief of Staff."},
+  {n:"Duplicate Candidate Flag", trigger:"System flags a possible duplicate.", to:"Consultant, RM, Chief of Staff."},
+  {n:"Screening Pending", trigger:"Candidate is ready for screening.", to:"Consultant."},
+  {n:"Shortlist Generated", trigger:"Top-K shortlist is produced for a Requisition.", to:"RM, Chief of Staff, Client (role-appropriate view)."},
+  {n:"Interview Scheduled", trigger:"An interview is scheduled.", to:"Participants; RM, Chief of Staff (visibility)."},
+  {n:"Interview Pending / Completed", trigger:"Interview status changes.", to:"RM, Chief of Staff."},
+  {n:"Hiring Decision Pending", trigger:"All interview rounds complete for a candidate.", to:"RM, Chief of Staff, Executive Sponsor / Client per approval hierarchy."},
+  {n:"Offer Acceptance Status Pending / Updated", trigger:"Candidate approved, or status changes.", to:"RM, Chief of Staff."},
+  {n:"Job Closure", trigger:"Requisition/Job Posting is closed.", to:"RM, Chief of Staff, Executive Sponsor."},
+  {n:"Hiring Market Risk Flagged", trigger:"Talent identifies a significant Location Intelligence-derived market constraint (§26.H).", to:"RM, Chief of Staff."},
+  {n:"Overdue Action", trigger:"An approval, screening, or decision exceeds its expected cadence (thresholds Business Decision Required).", to:"RM, Chief of Staff, and the specific pending actor."},
+];
+
+/* Section 14 — Audit trail event categories (every entry is immutable: actor, timestamp, action, prior/new value) */
+const AUDIT_CATEGORIES = [
+  "Requisition creation and edits","Budget changes","JD generation, edits, and version history",
+  "Requisition, JD, and LinkedIn post approvals/rejections","LinkedIn post creation and publication (including failures)",
+  "Candidate creation (application and manual headhunting)","Duplicate flags and their resolution",
+  "Resume/JD scoring (including manual overrides)","Screening question generation and edits","Screening evaluation records",
+  "Shortlist generation and changes (including overrides)","Interview outcomes and evaluations","Approve/reject hiring decisions",
+  "Offer acceptance status changes","Job posting closure",
+  "Location Intelligence data consumption (fields, source, version, date) (§25)",
+  "AI salary/market recommendations and overrides (§26.B, §33)",
+  "Hiring Market Risk and Location Reconsideration flags (§26.H–I)",
+];
+
+/* Section 21 — Business Decisions Required (kept close to source wording; referenced throughout the UI as bdr chips) */
+const BDR = {
+  approvalHierarchy:"Approval hierarchy: which role(s) approve a Requisition/JD/LinkedIn post/Hiring Decision, in what order, and when Executive Sponsor or Client sign-off is required. (§21)",
+  budgetThresholds:"Budget approval thresholds, if any, and their escalation path. (§21)",
+  topK:"Top-K value/configuration for the shortlist — not fixed by the FRD; must be configurable, not assumed. (§10.9, §21)",
+  duplicateRules:"Duplicate candidate matching rules (e.g., name + contact-detail vs. resume-content matching). (§10.6, §21)",
+  mergePolicy:"Duplicate candidate merge policy — whether confirmed duplicates can be merged at all, and by whom. (§10.6, §21)",
+  scoringMethod:"Resume scoring methodology and weighting; screening scoring methodology; ranking methodology beyond the raw score. (§21)",
+  linkedinMechanism:"LinkedIn integration mechanism — API-based publishing vs. manual publish-and-confirm workflow. (§10.5, §21, §22)",
+  overdueThresholds:"Notification thresholds that trigger an \"Overdue Action\" alert. (§13, §21)",
+  closureTreatment:"Treatment of candidates still in the pipeline when a job posting closes (e.g., auto Not-Selected, retained in a talent pool, or another policy). (§10.13, §21)",
+  offerStatusValues:"Exact offer acceptance status values beyond Pending/Accepted/Declined, if any. (§10.12, §21)",
+  retention:"Data retention periods for candidate records, recordings, and transcripts. (§19, §21)",
+  kpiTargets:"Exact numeric KPI targets/thresholds (e.g., \"requisition approval within N business days\"). (§5, §21)",
+  mandatoryFields:"Mandatory field list for the Requisition beyond the identified minimum set. (§10.1, §21)",
+  currency:"Currency handling (single-currency vs. multi-currency) and whether compensation structure/salary bands are captured at the budget stage. (§10.3, §21)",
+  liDataContract:"The complete, authoritative list of Location Intelligence fields and the exact API/object/schema that exposes them to Talent are not defined in this FRD and must be confirmed with the Location Intelligence team. (§25)",
+  domainTaxonomy:"The exact list/taxonomy of the four supported Advisory domains, and the identifier Talent uses to resolve one, are not enumerated in this FRD. (§25, §27)",
+  refreshCadence:"Whether \"Refresh Market Intelligence\" is a manual, user-triggered action only, or also runs on a defined cadence, and the data-freshness/staleness-warning threshold. (§30.2, §29)",
+  competitivenessThresholds:"The percentage bands that separate Below Market / Around Market / Above Market are not defined in this FRD. (§26.C, §34)",
+  roleSkillNormalization:"The role/skill/experience-band normalization or mapping strategy between Talent's free-text requisition data and Location Intelligence's taxonomy. (§28)",
+  dataFallback:"Exact fallback methodology when role, city, domain, or experience-band data is only partially resolvable (e.g., adjacent-band substitution vs. treating as unavailable), and how the substitution is labeled. (§29)",
+  upstreamChangeWorkflow:"Whether an approved requisition triggers re-approval or a budget re-review when the upstream Advisory/Location Intelligence data (city, domain, team size, etc.) changes after approval. (§31.2)",
+  benchmarkVisibility:"Client visibility into Location Intelligence market data is limited to a derived competitiveness label by default; Client and Executive Sponsor visibility into the underlying benchmark values and data source is Business Decision Required. (§12, §21, §34)",
+  costPlanningHandoff:"Handoff mechanism to a separate Cost Modelling module, if one exists, for workforce/cost planning — Talent does not duplicate cost-modelling ownership. (§26.J, §21)",
+  shortlistApproval:"Whether shortlist confirmation/approval is a required step, distinct from the Top-K value itself. (§10.9, §21)",
+  decisionStates:"Additional hiring-decision states beyond Pending Decision / Approved / Rejected, if any. (§10.11, §21)",
+};
+
+/* Section 8 — Personas, full responsibilities/needs text */
+const PERSONA_DETAIL = [
+  {role:"Client", desc:"Client-side; provides hiring requirements and participates in approvals and interviews.", resp:"Submits or reviews client requirements for a role; reviews and approves JD/budget where the approval hierarchy includes Client sign-off; participates in client-round interviews; participates in the final hiring decision where the approval hierarchy includes Client sign-off.", needs:"Role-appropriate visibility into requisitions, JDs, shortlists, and interview status relevant to their own requirement; confidence that internal Consultant/RM working notes are not exposed to them."},
+  {role:"Consultant", desc:"6S-side; executes day-to-day recruitment activity.", resp:"Drafts and edits requisitions, JDs, and LinkedIn posts; enters candidates and manual headhunting records; reviews AI-generated screening questions and resume scores; records screening/interview notes and evaluations.", needs:"Efficient tooling for drafting, scoring review, and evaluation entry; a clear record of what has and has not been approved at each gate."},
+  {role:"RM", desc:"6S-side; owns the day-to-day GCC relationship. Primary Governance/Talent engagement-management user, equal in purpose to Chief of Staff.", resp:"Reviews and approves requisitions, JDs, and LinkedIn posts; participates in interview coordination; makes or co-makes the approve/reject hiring decision; tracks offer acceptance status and job closure.", needs:"Consolidated visibility across every stage of a requisition's lifecycle; approval authority at each gate; an audit trail for accountability."},
+  {role:"Executive Sponsor", desc:"Client-side leader with approval/oversight visibility.", resp:"Reviews and approves requisitions, budgets, or hiring decisions where the approval hierarchy requires sponsor-level sign-off; monitors overall hiring progress.", needs:"A fast, trustworthy read on hiring status and where sponsor action is required, without needing operational detail."},
+  {role:"Chief of Staff", desc:"6S-side; manages and coordinates the client engagement and Talent process, with the same role purpose as RM for Talent engagement management.", resp:"Reviews requisitions, hiring requirements, and approval workflow status; holds job posting oversight; monitors the candidate pipeline, duplicate/exception flags, screening and shortlist status, interview progress, hiring decisions, and offer acceptance status; tracks closure; participates in approval gates alongside RM where the RBAC matrix grants it; receives reminders and Attention Required visibility.", needs:"First-class, consolidated cross-stage visibility equivalent to RM; participation in relevant approval actions; role-appropriate visibility under its own 6S-side RBAC, without exposure to restricted internal Consultant/RM notes."},
+  {role:"Project Admin", desc:"Administrative/monitoring role.", resp:"Monitors requisition and posting status for administrative purposes; does not typically originate or approve hiring content.", needs:"Read/monitoring access sufficient for administrative oversight, without unnecessary write access."},
+];
+
+/* Module framing — Sections 1, 2, 6, 7 (Document Overview / Scope / Out of Scope), verbatim-drawn */
+const MODULE = {
+  purpose:"Manage and coordinate the recruitment lifecycle for GCC/client hiring requirements, from requisition through job closure, as a single system of record for hiring execution.",
+  boundary:"Talent is the recruitment execution module. It is NOT an employee-management or HRIS system: it does not manage post-hire employee records, payroll, performance management, or the employee lifecycle. It is also NOT a location-evaluation module: it does not perform location suitability analysis — that remains owned by Location Intelligence.",
+  relationships:[
+    {to:"Advisory", body:"Advisory may define workforce requirements or strategic direction that inform when and why a hiring need arises; Talent does not own or redefine Advisory's strategic output — it consumes it as context for a requisition where applicable."},
+    {to:"Location Intelligence", body:"Location Intelligence sits between Advisory and Talent in the intelligence chain (§24): it evaluates location suitability and produces a client-approved Location plus market intelligence — salary benchmarks, skill/domain/graduate/lateral-mobility indicators — that flow into a Talent Requisition as reference context (§25). Talent uses that intelligence, where resolvable, to support AI-assisted salary recommendations, hiring-difficulty and market-risk signals, and sourcing suggestions (§26 — see the Requisition workspace's Market Intelligence and JD & Budget tabs). Talent never owns, duplicates, or re-derives the location evaluation itself, and never treats Location Intelligence as a source of actual candidates (§24.2, §34)."},
+    {to:"Implementation", body:"Implementation may track hiring-related milestones as part of a broader GCC establishment workstream; Talent remains the operational source of hiring data referenced by those milestones."},
+    {to:"Governance", body:"Talent acts as the recruitment execution module. Governance consumes high-level, read-only Talent progress and status (e.g., hiring progress %, Planned vs. Actual, Attention Required items). Governance has no write path into Talent."},
+    {to:"Marketplace", body:"Marketplace manages vendor/vendor-performance data and is a separate module; Talent does not use Marketplace to manage recruitment agencies or hiring vendors unless explicitly scoped in a future revision."},
+  ],
+  inScope:["Requisition creation, including client requirements capture.","JD generation (AI-assisted) and budget capture.","Requisition/JD approval workflow.","LinkedIn post creation using the 6S account, and post approval.","Candidate intake via direct application and manual headhunting entry.","Duplicate candidate detection.","AI-assisted resume-vs-JD scoring.","Screening: AI-generated screening questions, transcript/recording/notes capture, and evaluation.","Screening score and Top-K shortlist generation, with manual override.","Interview and meeting management, including client rounds and technical rounds.","Approve/reject hiring decision.","Offer acceptance status tracking (Pending / Accepted / Declined, or equivalent — see Section 21).","Job posting closure, including candidate pipeline treatment on closure.","Consumption of relevant Location Intelligence market data — salary benchmarks, AI-assisted salary recommendations, hiring-difficulty and market-risk signals, sourcing suggestions — to support requisition budgeting and hiring strategy, across all four supported Advisory domains (§24–26)."],
+  outOfScope:["Offer roll-out: generating, issuing, distributing, or negotiating the actual offer.","Offer letter generation and distribution.","Payroll.","Employee onboarding.","Employee lifecycle management.","Performance management.","General HRIS functionality (employee records, benefits administration, etc.).","Employee compensation administration.","Automatic hiring decisions made without a configured human decision/approval.","Autonomous candidate rejection performed without a configured human decision/approval.","Location suitability evaluation itself — remains owned by Location Intelligence.","Independently changing an approved Advisory / Location Intelligence location from within Talent.","Using Location Intelligence as a source of actual candidates — it is a market-intelligence layer only, never a candidate database.","Any capability outside the defined Talent workflow unless explicitly approved in a future revision."],
+};
+
+/* ---------------------------------------------------------------------
+   SAMPLE DATA — illustrative demo content only (names, dates, figures).
+   Field structure, statuses, stage names and workflow rules above are
+   the FRD-accurate part; the values below exist only to populate the
+   prototype with a working, walkable dataset.
+   --------------------------------------------------------------------- */
+const REQS = [
+  {
+    id:"REQ-1042", title:"Senior Backend Engineer", dept:"Engineering", location:"Bengaluru, India", positions:2,
+    stageIdx:11, reqStatus:"Approved", jdStatus:"Approved", budgetStatus:"Approved", liStatus:"Pending Publication".replace("Pending Publication",""),
+    postingStatus:"Live", client:"Meridian Systems GCC", targetTimeline:"6 weeks", raisedOn:"2026-07-14",
+    requirements:{skills:["Java / Spring Boot","Distributed systems","AWS","SQL + NoSQL"], experience:"6-9 years", qualifications:"B.E./B.Tech or equivalent", rationale:"Backfill for platform team scale-up", additional:"Prior GCC or product-engineering background preferred."},
+    numPositions:2,
+    budget:{entered:2400000, currency:"INR / annum (illustrative)", enteredBy:"Consultant"},
+    locationIntel:{
+      domain:"Technology &amp; Digital Engineering", dataDate:"2026-07-10",
+      benchmark:{min:2100000, max:2900000, currency:"INR / annum (illustrative)", coverage:"Exact match — role, experience band, city and domain all resolved."},
+      aiRecommendation:{value:2550000, note:"Recommended near benchmark midpoint for a 6–9 yr band with platform-scale ownership."},
+      override:{original:2550000, final:2400000, by:"RM — S. Iyer", date:"2026-07-16", reason:"Aligned to this cycle's approved budget ceiling for the pod"},
+      hiringDifficulty:{level:"Moderate-High", factors:[
+        {label:"Skill Availability", value:"Moderate — the combined Distributed Systems + NoSQL-at-scale profile is scarcer than either skill alone."},
+        {label:"Domain Ecosystem", value:"Strong — mature technology ecosystem in Bengaluru."},
+        {label:"Lateral Mobility", value:"High — a competitive counter-offer environment for this band."},
+        {label:"Graduate Output", value:"High, but mostly entry-level — limited relevance at a 6–9 yr band."},
+      ]},
+      deliveryReadiness:{level:"High", note:"Bengaluru is assessed as fully ready to support delivery at the client's intended scale for this domain (§26.H, §26.I)."},
+      teamScaleHorizon:{headcount:12, horizon:"Next 2–3 quarters", note:"Client's platform pod is planned to scale to ~12 engineers within this horizon."},
+      skillAvailability:[{skill:"Java / Spring Boot", level:"High"},{skill:"AWS", level:"High"},{skill:"Distributed systems", level:"Moderate"},{skill:"SQL + NoSQL", level:"Moderate-Low"}],
+      sourcingSuggestions:["Prioritize referral and LinkedIn outreach given the high lateral-mobility signal.","Consider adjacent Tier-2 tech hubs if the 6-week timeline slips."],
+      marketRisks:[],
+      locationReconsideration:null,
+    },
+    jdVersions:[{v:1,by:"AI (draft)",date:"2026-07-15",note:"Initial AI-generated draft from captured requirements."},{v:2,by:"Consultant — A. Rao",date:"2026-07-16",note:"Edited scope of ownership section; added on-call expectation."},{v:3,by:"RM — S. Iyer",date:"2026-07-17",note:"Approved as final."}],
+    approvals:[{stage:"Requisition", by:"RM — S. Iyer", decision:"Approved", date:"2026-07-15", comment:"Aligned with Q3 scale-up plan."},{stage:"JD", by:"Chief of Staff — M. Bose", decision:"Approved", date:"2026-07-17", comment:"Looks good."}],
+    linkedin:{status:"Live", publishedOn:"2026-07-18", draft:"We're hiring a Senior Backend Engineer to join Meridian Systems GCC's platform team in Bengaluru...", approvedBy:"RM — S. Iyer"},
+    notes:[{author:"Consultant", text:"Client hinted openness to remote-hybrid for the right candidate — not yet reflected in JD."}],
+  },
+  {
+    id:"REQ-1044", title:"Data Analyst", dept:"Analytics", location:"Pune, India", positions:1,
+    stageIdx:2, reqStatus:"Pending Approval", jdStatus:"Pending Approval", budgetStatus:"Pending Approval", postingStatus:"Not Started",
+    client:"Meridian Systems GCC", targetTimeline:"4 weeks", raisedOn:"2026-08-20",
+    requirements:{skills:["SQL","Power BI / Tableau","Python (pandas)"], experience:"2-4 years", qualifications:"Bachelor's in a quantitative field", rationale:"New analytics pod for client reporting workstream", additional:"—"},
+    numPositions:1,
+    budget:{entered:950000, currency:"INR / annum (illustrative)", enteredBy:"Client"},
+    locationIntel:{
+      domain:"Analytics &amp; Business Intelligence", dataDate:"2026-08-18",
+      benchmark:{min:1000000, max:1300000, currency:"INR / annum (illustrative)", coverage:"Adjacent experience band used — exact 2-4 yr band not resolvable; fallback labeling per Section 29 is Business Decision Required."},
+      aiRecommendation:{value:1050000, note:"Recommended toward the lower end of the band given the adjacent-band fallback."},
+      override:null,
+      hiringDifficulty:{level:"Low-Moderate", factors:[
+        {label:"Skill Availability", value:"High — SQL/BI tooling is broadly available in Pune."},
+        {label:"Domain Ecosystem", value:"Moderate — growing analytics presence, less mature than core tech hubs."},
+        {label:"Lateral Mobility", value:"Moderate."},
+        {label:"Graduate Output", value:"High — strong relevance at this early-career band."},
+      ]},
+      deliveryReadiness:{level:"Moderate", note:"Pune's analytics-delivery ecosystem is developing but not yet at the depth of core tech hubs (§26.H, §26.I)."},
+      teamScaleHorizon:null,
+      skillAvailability:[{skill:"SQL", level:"High"},{skill:"Power BI / Tableau", level:"High"},{skill:"Python (pandas)", level:"Moderate"}],
+      sourcingSuggestions:["Campus/graduate channels are likely to perform well at this band given local graduate output."],
+      marketRisks:[{text:"Entered budget is below the resolved market benchmark for this role/band — see Budget Competitiveness on the JD & Budget tab."}],
+      locationReconsideration:null,
+    },
+    jdVersions:[{v:1,by:"AI (draft)",date:"2026-08-20",note:"Initial AI-generated draft."},{v:2,by:"Consultant — P. Nair",date:"2026-08-21",note:"Submitted for approval."}],
+    approvals:[{stage:"Requisition", by:"—", decision:"Pending", date:"—", comment:""}],
+    linkedin:{status:"Not Started"},
+    notes:[],
+  },
+  {
+    id:"REQ-1047", title:"QA Automation Lead", dept:"Quality Engineering", location:"Chennai, India", positions:1,
+    stageIdx:0, reqStatus:"Draft", jdStatus:"Not Started", budgetStatus:"Not Started", postingStatus:"Not Started",
+    client:"Meridian Systems GCC", targetTimeline:"8 weeks", raisedOn:"2026-09-02",
+    requirements:{skills:["Selenium / Playwright","CI/CD","Test strategy"], experience:"7+ years", qualifications:"B.E./B.Tech", rationale:"Client requested dedicated QA leadership ahead of new release cadence.", additional:"Requirements captured from client call on 2026-09-02; JD not yet generated."},
+    numPositions:1,
+    budget:null,
+    locationIntel:null,
+    jdVersions:[], approvals:[], linkedin:{status:"Not Started"}, notes:[{author:"RM", text:"Waiting on Consultant to progress this to JD generation."}],
+  },
+  {
+    id:"REQ-1039", title:"Engineering Manager", dept:"Engineering", location:"Bengaluru, India", positions:1,
+    stageIdx:14, reqStatus:"Fulfilled", jdStatus:"Approved", budgetStatus:"Approved", postingStatus:"Closed",
+    client:"Meridian Systems GCC", targetTimeline:"10 weeks", raisedOn:"2026-05-05",
+    requirements:{skills:["People management","Platform architecture","Stakeholder management"], experience:"10-14 years", qualifications:"B.E./B.Tech + leadership track record", rationale:"New engineering pod lead for GCC expansion.", additional:"—"},
+    numPositions:1,
+    budget:{entered:4200000, currency:"INR / annum (illustrative)", enteredBy:"RM"},
+    locationIntel:{
+      domain:"Technology &amp; Digital Engineering", dataDate:"2026-05-02",
+      benchmark:{min:3800000, max:4600000, currency:"INR / annum (illustrative)", coverage:"Exact match — role, experience band, city and domain all resolved."},
+      aiRecommendation:{value:4150000, note:"Recommended near benchmark midpoint given the leadership scope."},
+      override:null,
+      hiringDifficulty:{level:"High", factors:[
+        {label:"Skill Availability", value:"Low-Moderate — engineering leaders with platform-scale ownership are scarce."},
+        {label:"Domain Ecosystem", value:"Strong."},
+        {label:"Lateral Mobility", value:"High — senior leaders are frequently counter-offered."},
+        {label:"Graduate Output", value:"Not applicable at this seniority band."},
+      ]},
+      deliveryReadiness:{level:"Moderate", note:"Bengaluru remains viable for this scope, though senior engineering-leadership delivery capacity is tightening (§26.H, §26.I)."},
+      teamScaleHorizon:{headcount:8, horizon:"Next 2 quarters", note:"New engineering pod planned to reach ~8 engineers under this manager within the horizon."},
+      skillAvailability:[{skill:"People management", level:"Moderate"},{skill:"Platform architecture", level:"Moderate-Low"},{skill:"Stakeholder management", level:"Moderate"}],
+      sourcingSuggestions:["Executive search / referral network likely to outperform inbound applications at this seniority."],
+      marketRisks:[],
+      locationReconsideration:null,
+    },
+    jdVersions:[{v:1,by:"AI (draft)",date:"2026-05-06",note:"Initial draft."},{v:2,by:"Consultant — A. Rao",date:"2026-05-07",note:"Approved as final."}],
+    approvals:[{stage:"Requisition", by:"Executive Sponsor — R. Fernandes", decision:"Approved", date:"2026-05-08", comment:"Budget sign-off given scale plan."},{stage:"JD", by:"RM — S. Iyer", decision:"Approved", date:"2026-05-09", comment:""},{stage:"Hiring Decision", by:"RM — S. Iyer / Chief of Staff — M. Bose", decision:"Approved", date:"2026-08-12", comment:"Strong technical + leadership rounds."}],
+    linkedin:{status:"Closed", publishedOn:"2026-05-10", closedOn:"2026-08-14", draft:"Meridian Systems GCC is looking for an Engineering Manager to lead a new platform pod...", approvedBy:"RM — S. Iyer"},
+    closure:{closedOn:"2026-08-14", reason:"Position filled — candidate accepted offer.", finalStatus:"Fulfilled", remainingCandidatesTreatment:"Not applicable — the only other candidate in the pipeline (CAN-3202) was already rejected at interview stage before closure."},
+    notes:[],
+  },
+  {
+    id:"REQ-1031", title:"Financial Analyst", dept:"Finance", location:"Hyderabad, India", positions:1,
+    stageIdx:14, reqStatus:"Fulfilled", jdStatus:"Approved", budgetStatus:"Approved", postingStatus:"Closed",
+    client:"Meridian Systems GCC", targetTimeline:"5 weeks", raisedOn:"2026-03-10",
+    requirements:{skills:["FP&A","Excel modelling","Variance analysis"], experience:"3-5 years", qualifications:"CA / MBA Finance", rationale:"Backfill on client's Finance GCC pod.", additional:"—"},
+    numPositions:1,
+    budget:{entered:1150000, currency:"INR / annum (illustrative)", enteredBy:"Client"},
+    locationIntel:{
+      domain:"Finance &amp; Shared Services", dataDate:"2026-03-08",
+      benchmark:{min:1000000, max:1250000, currency:"INR / annum (illustrative)", coverage:"Exact match — role, experience band, city and domain all resolved."},
+      aiRecommendation:{value:1120000, note:"Recommended near benchmark midpoint."},
+      override:null,
+      hiringDifficulty:{level:"Low", factors:[
+        {label:"Skill Availability", value:"High — FP&amp;A talent is broadly available in Hyderabad's finance-GCC cluster."},
+        {label:"Domain Ecosystem", value:"Strong."},
+        {label:"Lateral Mobility", value:"Moderate."},
+        {label:"Graduate Output", value:"High."},
+      ]},
+      deliveryReadiness:{level:"High", note:"Hyderabad's finance-GCC cluster is well established for this domain and scale (§26.H, §26.I)."},
+      teamScaleHorizon:null,
+      skillAvailability:[{skill:"FP&amp;A", level:"High"},{skill:"Excel modelling", level:"High"},{skill:"Variance analysis", level:"Moderate"}],
+      sourcingSuggestions:[],
+      marketRisks:[],
+      locationReconsideration:null,
+    },
+    jdVersions:[{v:1,by:"AI (draft)",date:"2026-03-11",note:"Initial draft."},{v:2,by:"Consultant — P. Nair",date:"2026-03-12",note:"Approved as final."}],
+    approvals:[{stage:"Requisition", by:"RM — S. Iyer", decision:"Approved", date:"2026-03-12", comment:""},{stage:"Hiring Decision", by:"RM — S. Iyer", decision:"Approved", date:"2026-04-18", comment:""}],
+    linkedin:{status:"Closed", publishedOn:"2026-03-13", closedOn:"2026-04-22", draft:"Meridian Systems GCC seeks a Financial Analyst for its Finance shared-services pod...", approvedBy:"RM — S. Iyer"},
+    closure:{closedOn:"2026-04-22", reason:"Position filled — candidate accepted offer.", finalStatus:"Fulfilled", remainingCandidatesTreatment:"Business Decision Required — FRD does not define the treatment applied to the two remaining pipeline candidates at closure (§10.13, §21)."},
+    notes:[],
+  },
+  {
+    id:"REQ-1050", title:"Site Reliability Engineer", dept:"Engineering", location:"Bengaluru, India", positions:1,
+    stageIdx:10, reqStatus:"Approved", jdStatus:"Approved", budgetStatus:"Approved", postingStatus:"Live",
+    client:"Meridian Systems GCC", targetTimeline:"6 weeks", raisedOn:"2026-08-05",
+    requirements:{skills:["Kubernetes","Observability","Incident management"], experience:"5-8 years", qualifications:"B.E./B.Tech", rationale:"New SRE function for platform reliability.", additional:"—"},
+    numPositions:1,
+    budget:{entered:2600000, currency:"INR / annum (illustrative)", enteredBy:"Consultant"},
+    locationIntel:{
+      domain:"Technology &amp; Digital Engineering", dataDate:"2026-08-01",
+      benchmark:{min:2700000, max:3400000, currency:"INR / annum (illustrative)", coverage:"Exact match — role, experience band, city and domain all resolved."},
+      aiRecommendation:{value:3000000, note:"Recommended toward the upper end of the band given constrained local SRE supply."},
+      override:null,
+      hiringDifficulty:{level:"High", factors:[
+        {label:"Skill Availability", value:"Low — production-grade Kubernetes + observability depth is scarce locally."},
+        {label:"Domain Ecosystem", value:"Strong overall tech ecosystem, but SRE specifically is a thin sub-market."},
+        {label:"Lateral Mobility", value:"High — SRE talent is aggressively counter-offered."},
+        {label:"Graduate Output", value:"Not applicable — this is a mid/senior band."},
+      ]},
+      deliveryReadiness:{level:"Low-Moderate", note:"Constrained local SRE supply tempers overall delivery readiness for this domain at the client's intended scale — a contributing factor in the Hiring Market Risk flag below (§26.H, §26.I)."},
+      teamScaleHorizon:{headcount:5, horizon:"Next 4 quarters", note:"Platform-reliability function planned to scale to ~5 SREs within this horizon; informs the Hiring Market Risk assessment (§26.H)."},
+      skillAvailability:[{skill:"Kubernetes", level:"Low"},{skill:"Observability", level:"Low-Moderate"},{skill:"Incident management", level:"Moderate"}],
+      sourcingSuggestions:["Referral and passive-candidate outreach recommended given thin active-market supply.","Consider a Tier-2 hub or remote-hybrid arrangement to widen the pool."],
+      marketRisks:[{text:"Entered budget (₹26L) sits below the resolved market benchmark (₹27–34L) in a high-difficulty, low-availability market — elevated risk of a stalled search or repeated declines."}],
+      locationReconsideration:{text:"Hiring-market constraints for this skill profile are significant enough to warrant reviewing whether Bengaluru remains the optimal delivery location for this role. Any actual location change must go through the Advisory / Location Intelligence approval flow — Talent cannot change the approved location on its own."},
+    },
+    jdVersions:[{v:1,by:"AI (draft)",date:"2026-08-05",note:"Initial draft."},{v:2,by:"Consultant — A. Rao",date:"2026-08-06",note:"Approved as final."}],
+    approvals:[{stage:"Requisition", by:"RM — S. Iyer", decision:"Approved", date:"2026-08-06", comment:""},{stage:"JD", by:"Chief of Staff — M. Bose", decision:"Approved", date:"2026-08-07", comment:""}],
+    linkedin:{status:"Live", publishedOn:"2026-08-08", draft:"Meridian Systems GCC is hiring a Site Reliability Engineer in Bengaluru...", approvedBy:"Chief of Staff — M. Bose"},
+    notes:[{author:"RM", text:"Client confirmed budget ceiling is firm for this cycle — flagged to Chief of Staff on 2026-08-10 given the tight SRE talent pool in this location."}],
+  },
+];
+
+const CANDIDATES = [
+  {id:"CAN-3301", reqId:"REQ-1042", name:"Ananya Krishnan", source:"Direct Application", appliedOn:"2026-07-19", state:"Interviewing",
+    score:{value:88, matched:["Java / Spring Boot","AWS","Distributed systems"], missing:["NoSQL at scale"], explanation:"Strong alignment on backend architecture and cloud experience; limited evidence of large-scale NoSQL work in resume."},
+    duplicate:null,
+    screening:{status:"Evaluated", questions:["Walk through a distributed-systems incident you led the resolution for.","How do you approach schema design trade-offs between SQL and NoSQL stores?"], evalSummary:"Strong systems-design reasoning; clear communication. AI evaluation: high alignment with JD core requirements."},
+    interviews:[{type:"Technical Round", participants:"Consultant, Client Tech Lead", status:"Completed", outcome:"Positive", notes:"Strong hands-on coding + system design."},{type:"Client Round", participants:"Client Engineering Director", status:"Scheduled", outcome:"—", notes:""}],
+    decision:{status:"Pending Decision"}, offer:"Not Applicable",
+    notes:[{author:"Consultant", text:"Candidate mentioned a competing offer with a 2-week decision window."}]},
+  {id:"CAN-3302", reqId:"REQ-1042", name:"Rohit Malhotra", source:"Manual Headhunting", appliedOn:"2026-07-20", state:"Shortlisted",
+    score:{value:81, matched:["Java / Spring Boot","SQL + NoSQL"], missing:["AWS"], explanation:"Solid core backend match; cloud platform experience is on Azure rather than AWS as required."},
+    duplicate:null,
+    screening:{status:"Evaluated", questions:["Describe a time you optimized a slow SQL query in production.","How do you structure service boundaries in a microservices system?"], evalSummary:"Good fundamentals; would need AWS ramp-up. AI evaluation: moderate-high alignment."},
+    interviews:[], decision:{status:"Pending Decision"}, offer:"Not Applicable", notes:[]},
+  {id:"CAN-3303", reqId:"REQ-1042", name:"Kavya Suresh", source:"Direct Application", appliedOn:"2026-07-21", state:"Flagged - Possible Duplicate",
+    score:null, duplicate:{possibleMatch:"CAN-3301 (Ananya Krishnan)", reason:"Matching email domain and near-identical resume filename hash.", resolved:false},
+    screening:null, interviews:[], decision:null, offer:"Not Applicable", notes:[]},
+  {id:"CAN-3304", reqId:"REQ-1042", name:"Devika Menon", source:"Direct Application", appliedOn:"2026-07-22", state:"Not Shortlisted",
+    score:{value:54, matched:["SQL + NoSQL"], missing:["Java / Spring Boot","AWS","Distributed systems"], explanation:"Primarily a data-engineering background; limited overlap with the core backend-engineering JD requirements."},
+    duplicate:null, screening:{status:"Evaluated", questions:["Tell us about a backend service you built end to end."], evalSummary:"Responses skewed toward data pipelines rather than service architecture. AI evaluation: low-moderate alignment."},
+    interviews:[], decision:null, offer:"Not Applicable", notes:[]},
+  {id:"CAN-3401", reqId:"REQ-1050", name:"Farhan Sheikh", source:"Direct Application", appliedOn:"2026-08-09", state:"Evaluated",
+    score:{value:79, matched:["Kubernetes","Incident management"], missing:["Observability tooling depth"], explanation:"Good operational fundamentals; observability-stack depth (tracing/metrics) less evidenced."},
+    duplicate:null, screening:{status:"Evaluated", questions:["Walk through your incident-response process for a production outage.","What observability stack have you deployed and why?"], evalSummary:"Confident on incident handling; lighter on tooling specifics. AI evaluation: moderate-high alignment."},
+    interviews:[], decision:null, offer:"Not Applicable", notes:[]},
+  {id:"CAN-3402", reqId:"REQ-1050", name:"Priya Ramamurthy", source:"Manual Headhunting", appliedOn:"2026-08-10", state:"Scored",
+    score:{value:85, matched:["Kubernetes","Observability","Incident management"], missing:[], explanation:"Strong full-stack SRE profile against all core JD requirements."},
+    duplicate:null, screening:{status:"Pending Screening"}, interviews:[], decision:null, offer:"Not Applicable", notes:[]},
+  {id:"CAN-3403", reqId:"REQ-1050", name:"Vikram Achar", source:"Direct Application", appliedOn:"2026-08-11", state:"Pending Duplicate Check",
+    score:null, duplicate:{possibleMatch:null, reason:"Awaiting automated duplicate check.", resolved:false}, screening:null, interviews:[], decision:null, offer:"Not Applicable", notes:[]},
+  {id:"CAN-3201", reqId:"REQ-1039", name:"Nikhil Bhatt", source:"Manual Headhunting", appliedOn:"2026-05-20", state:"Offer Accepted",
+    score:{value:91, matched:["People management","Platform architecture","Stakeholder management"], missing:[], explanation:"Excellent match on all core leadership and technical dimensions."},
+    duplicate:null, screening:{status:"Evaluated", questions:["Describe how you scaled a team through 2x headcount growth."], evalSummary:"Exceptional leadership narrative with concrete outcomes. AI evaluation: high alignment."},
+    interviews:[{type:"Technical Round", participants:"RM, Client Tech Director", status:"Completed", outcome:"Positive", notes:"Deep architecture fluency."},{type:"Client Round", participants:"Executive Sponsor", status:"Completed", outcome:"Positive", notes:"Strong stakeholder presence."}],
+    decision:{status:"Approved", by:"RM — S. Iyer / Chief of Staff — M. Bose", date:"2026-08-12", reason:"Unanimous positive feedback across rounds."},
+    offer:"Accepted", offerDate:"2026-08-20", notes:[]},
+  {id:"CAN-3202", reqId:"REQ-1039", name:"Sanjana Iyer", source:"Direct Application", appliedOn:"2026-05-25", state:"Rejected",
+    score:{value:63, matched:["People management"], missing:["Platform architecture depth"], explanation:"Strong people leadership; architectural depth below bar for this senior IC-adjacent leadership role."},
+    duplicate:null, screening:{status:"Evaluated", questions:["Describe a platform architecture decision you influenced."], evalSummary:"Limited direct architecture ownership evidenced. AI evaluation: moderate alignment."},
+    interviews:[{type:"Client Round", participants:"Executive Sponsor", status:"Completed", outcome:"Mixed", notes:"Liked leadership style; concerned about technical depth."}],
+    decision:{status:"Rejected", by:"RM — S. Iyer / Chief of Staff — M. Bose", date:"2026-08-12", reason:"Technical depth did not meet bar relative to selected candidate."}, offer:"Not Applicable", notes:[]},
+  {id:"CAN-3101", reqId:"REQ-1031", name:"Meera Pillai", source:"Direct Application", appliedOn:"2026-03-15", state:"Offer Accepted",
+    score:{value:87, matched:["FP&A","Excel modelling","Variance analysis"], missing:[], explanation:"Strong alignment across all core FP&A requirements."},
+    duplicate:null, screening:{status:"Evaluated", questions:["Walk through a variance analysis you presented to leadership."], evalSummary:"Clear, structured financial storytelling. AI evaluation: high alignment."},
+    interviews:[{type:"Client Round", participants:"Client Finance Director", status:"Completed", outcome:"Positive", notes:"Strong fit."}],
+    decision:{status:"Approved", by:"RM — S. Iyer", date:"2026-04-18", reason:"Best overall fit among shortlist."}, offer:"Accepted", offerDate:"2026-04-25", notes:[]},
+  {id:"CAN-3102", reqId:"REQ-1031", name:"Arjun Deshpande", source:"Direct Application", appliedOn:"2026-03-16", state:"Not Shortlisted",
+    score:{value:58, matched:["Excel modelling"], missing:["FP&A","Variance analysis"], explanation:"General finance background without dedicated FP&A exposure."},
+    duplicate:null, screening:null, interviews:[], decision:null, offer:"Not Applicable", notes:[]},
+  {id:"CAN-3103", reqId:"REQ-1031", name:"Lakshmi Narayan", source:"Manual Headhunting", appliedOn:"2026-03-18", state:"Not Shortlisted",
+    score:{value:61, matched:["FP&A"], missing:["Variance analysis depth"], explanation:"Relevant FP&A background; limited variance-analysis specifics in resume."},
+    duplicate:null, screening:null, interviews:[], decision:null, offer:"Not Applicable", notes:[]},
+];
+
+function reqOf(id){ return REQS.find(r=>r.id===id); }
+function candsOf(reqId){ return CANDIDATES.filter(c=>c.reqId===reqId); }
+function candOf(id){ return CANDIDATES.find(c=>c.id===id); }
+
+/* =====================================================================
+   APP STATE
+   ===================================================================== */
+const state = { role: "RM", notifOpen:false };
+
+/* ---------- generic helpers ---------- */
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c])); }
+function money(n){ if(n==null) return "—"; return "₹" + n.toLocaleString("en-IN"); }
+function grade(action){ const row = RBAC[action]; return row ? (row[state.role]||"-") : "-"; }
+function rbacChip(action){
+  const g = grade(action);
+  return `<span class="rbac-chip ${GRADE_CLASS[g]}" title="RBAC §12 — ${esc(action)}"><span class="pdot"></span>${GRADE_LABEL[g]}</span>`;
+}
+/* Renders a button gated by the RBAC grade for `action`.
+   E -> active button (primary look optional). A -> approve/reject pair. V -> disabled, locked. - -> not rendered. */
+function actionButton(action, label, opts={}){
+  const g = grade(action);
+  if(g === "-") return "";
+  if(g === "V"){
+    return `<button class="btn btn-sm" disabled title="View only for ${esc(state.role)} — RBAC §12 grants View, not Edit, on &quot;${esc(action)}&quot;."><span class="lock">&#128274;</span> ${esc(label)}</button>`;
+  }
+  if(g === "A"){
+    return `<span class="tooltip-wrap" title="Approval authority — exact hierarchy/order is Business Decision Required (§21).">
+      <button class="btn btn-primary btn-sm" onclick="toast('${esc(label)} recorded (prototype — no persistence).')">&#10003; Approve</button>
+      <button class="btn btn-sm" style="margin-left:6px;" onclick="toast('Rejection recorded (prototype — no persistence).')">Reject</button>
+    </span>`;
+  }
+  return `<button class="btn ${opts.primary?'btn-primary':''} btn-sm" onclick="toast('${esc(label)} — action recorded (prototype — no persistence).')">${esc(label)}</button>`;
+}
+function capabilityBar(actions){
+  const chips = actions.map(a=>{
+    const g = grade(a);
+    if(g==="-") return `<span class="rbac-chip b-slate" style="opacity:.55" title="RBAC §12"><span class="pdot"></span>No access — ${esc(a)}</span>`;
+    return `<span class="rbac-chip ${GRADE_CLASS[g]}" title="RBAC §12"><span class="pdot"></span>${esc(a)}</span>`;
+  }).join("");
+  return `<div class="capbar"><span class="who">Viewing as ${esc(state.role)} —</span>${chips}</div>`;
+}
+function aiChip(label){ return `<span class="ai-chip">&#10024; ${esc(label||"AI-assisted · decision support")}</span>`; }
+/* Compact info icon — full FRD guardrail language lives in the hover tooltip instead of a permanent paragraph on screen. */
+function tip(text){ return `<span class="info-dot" title="${esc(text)}">i</span>`; }
+/* Native <details> accordion — opens by default only when `open` is true, so a candidate/requisition page
+   shows one glanceable line per section instead of every card's full text at once. */
+function accordion(title, summary, bodyHtml, open){
+  return `<details class="acc" ${open?"open":""}>
+    <summary><svg class="icon chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg><span class="s-title">${esc(title)}</span><span class="s-sum">${esc(summary)}</span></summary>
+    <div class="acc-body">${bodyHtml}</div>
+  </details>`;
+}
+function bdrChip(key){
+  const text = BDR[key] || key;
+  return `<span class="bdr-chip" title="${esc(text)}">&#9873; Business Decision Required</span>`;
+}
+function stateBadge(s){
+  const map = {
+    "Draft":"b-slate","Pending Approval":"b-warning","Approved":"b-success","Rejected":"b-critical","Returned for Modification":"b-warning",
+    "Fulfilled":"b-success","Withdrawn":"b-slate","Closed":"b-slate","Not Started":"b-slate","Pending Publication":"b-warning","Live":"b-success","Expired":"b-slate",
+    "New":"b-info","Pending Duplicate Check":"b-warning","Unique":"b-success","Flagged - Possible Duplicate":"b-critical","Scored":"b-info",
+    "Pending Screening":"b-warning","Screened":"b-info","Evaluated":"b-info","Shortlisted":"b-success","Not Shortlisted":"b-slate",
+    "Interviewing":"b-warning","Interview Complete":"b-info","Pending Decision":"b-warning",
+    "Offer Pending":"b-warning","Offer Accepted":"b-success","Offer Declined":"b-critical","Not Applicable":"b-slate",
+  };
+  return `<span class="badge ${map[s]||'b-slate'}"><span class="pdot"></span>${esc(s)}</span>`;
+}
+/* Location Intelligence (FRD Part II, §26.C) — compares the entered/approved budget against the
+   Location Intelligence salary benchmark. The exact percentage bands are not defined in the FRD
+   (bdrChip('competitivenessThresholds')); this illustrative ±3% margin exists only to produce a
+   working demo signal. */
+function competitivenessLabel(entered, benchmark){
+  if(!benchmark) return {label:"Insufficient Data", cls:"b-slate"};
+  const low = benchmark.min * 0.97, high = benchmark.max * 1.03;
+  if(entered < low) return {label:"Below Market", cls:"b-warning"};
+  if(entered > high) return {label:"Above Market", cls:"b-info"};
+  return {label:"Around Market", cls:"b-success"};
+}
+/* Qualitative indicator badges for Location Intelligence signals (§25/§26). "Good" direction differs
+   by signal type, so availability and difficulty each get their own polarity mapping. */
+function availabilityBadgeClass(level){
+  if(/^high/i.test(level)) return "b-success";
+  if(/^moderate-low|^low/i.test(level)) return "b-critical";
+  return "b-warning";
+}
+function difficultyBadgeClass(level){
+  if(/^low/i.test(level)) return "b-success";
+  if(/^high/i.test(level)) return "b-critical";
+  return "b-warning";
+}
+function toast(msg){
+  let t = document.getElementById("toastEl");
+  if(!t){ t = document.createElement("div"); t.id="toastEl"; t.style.cssText="position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:30px;font-size:12.5px;z-index:100;box-shadow:var(--shadow-pop);opacity:0;transition:opacity .2s;"; document.body.appendChild(t); }
+  t.textContent = msg; t.style.opacity = "1";
+  clearTimeout(window.__toastT); window.__toastT = setTimeout(()=>{ t.style.opacity="0"; }, 2200);
+}
+function go(hash){ location.hash = hash; }
+
+/* ---------- shell: sidebar / topbar / breadcrumbs ---------- */
+const ICON_DASHBOARD = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.5"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.5"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.5"/><rect x="13" y="13" width="7.5" height="7.5" rx="1.5"/></svg>';
+const ICON_INFO = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 8v.01"/></svg>';
+const ICON_DOC = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h8L19 8v12.5h-12.5Z"/><path d="M14 3.5V8h4.5"/><path d="M9 13h6M9 16.5h6"/></svg>';
+const ICON_PEOPLE = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><path d="M2.8 19c.6-3.3 3-5 5.7-5s5.1 1.7 5.7 5"/><circle cx="17" cy="9" r="2.3"/><path d="M15.3 19c.4-2.6 2-4 4.2-4.3"/></svg>';
+const ICON_MEGAPHONE = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5v3a1.5 1.5 0 0 0 1.5 1.5h1l3.8 4.2V6.3L6 10.5H5a1.5 1.5 0 0 0-1.5 0Z"/><path d="M14 9.5 20.5 6v12l-6.5-3.5"/></svg>';
+const ICON_CHECK = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 20.5 8v6c0 4.5-3.4 7.6-8.5 9.5C6.9 21.6 3.5 18.5 3.5 14V8Z"/><path d="M8.5 12.2l2.4 2.4 4.6-4.8"/></svg>';
+const ICON_AUDIT = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3.5h6v2.4H9z"/><path d="M8.5 11h7M8.5 14.5h7M8.5 18h4.5"/></svg>';
+const ICON_LOCK = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1.4" fill="currentColor" stroke="none"/></svg>';
+const NAV = [
+  {group:"Overview", items:[
+    {id:"dashboard", label:"Dashboard", icon:ICON_DASHBOARD, href:"#/dashboard"},
+    {id:"overview", label:"Module Overview", icon:ICON_INFO, href:"#/overview"},
+  ]},
+  {group:"Recruitment", items:[
+    {id:"requisitions", label:"Requisitions", icon:ICON_DOC, href:"#/requisitions", count:()=>REQS.length},
+    {id:"candidates", label:"Candidates", icon:ICON_PEOPLE, href:"#/candidates", count:()=>CANDIDATES.length},
+    {id:"postings", label:"Job Postings", icon:ICON_MEGAPHONE, href:"#/postings", count:()=>REQS.filter(r=>r.linkedin&&r.linkedin.status!=="Not Started").length},
+    {id:"approvals", label:"Approvals", icon:ICON_CHECK, href:"#/approvals", count:()=>pendingApprovalCount()},
+  ]},
+  {group:"Governance", items:[
+    {id:"audit", label:"Audit Trail", icon:ICON_AUDIT, href:"#/audit"},
+    {id:"roles", label:"Roles & Access", icon:ICON_LOCK, href:"#/roles"},
+  ]},
+];
+function pendingApprovalCount(){
+  let n=0;
+  REQS.forEach(r=>{ if(r.reqStatus==="Pending Approval") n++; if(r.jdStatus==="Pending Approval") n++; if(r.linkedin && r.linkedin.status==="Pending Publication") n++; });
+  CANDIDATES.forEach(c=>{ if(c.decision && c.decision.status==="Pending Decision") n++; });
+  return n;
+}
+function renderSidebar(activeId){
+  const groups = NAV.map(g=>`
+    <div class="nav-group">
+      <div class="nav-label">${esc(g.group)}</div>
+      ${g.items.map(it=>`
+        <button class="nav-item ${it.id===activeId?'active':''}" onclick="go('${it.href}')">
+          <span class="ic">${it.icon}</span><span>${esc(it.label)}</span>
+          ${it.count?`<span class="nav-count">${it.count()}</span>`:""}
+        </button>`).join("")}
+    </div>`).join("");
+  document.getElementById("sidebar").innerHTML = `
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-text"><div class="b1">Talent</div><div class="b2">Dewdrop</div></div>
+    </div>
+    ${groups}
+    <div class="sidebar-foot">Prototype built from the Talent Module FRD. Sample requisitions &amp; candidates are illustrative demo data.</div>
+  `;
+}
+function initials(role){
+  const map = {Client:"CL", Consultant:"CN", RM:"RM", "Executive Sponsor":"ES", "Chief of Staff":"CS", "Project Admin":"PA"};
+  return map[role]||role.slice(0,2).toUpperCase();
+}
+function renderRoleSelect(){
+  const sel = document.getElementById("roleSel");
+  sel.innerHTML = ROLES.map(r=>`<option value="${esc(r)}" ${r===state.role?'selected':''}>${esc(r)}</option>`).join("");
+  sel.onchange = (e)=>{ state.role = e.target.value; document.getElementById("avatar").textContent = initials(state.role); toast(`Now viewing as ${state.role}`); render(); };
+  const av = document.getElementById("avatar"); if(av) av.textContent = initials(state.role);
+}
+function setCrumbs(items){
+  document.getElementById("crumbs").innerHTML = items.map((c,i)=> i===items.length-1
+    ? `<span class="current">${esc(c.label)}</span>`
+    : `<button onclick="go('${c.href}')">${esc(c.label)}</button><span class="sep">/</span>`
+  ).join("");
+}
+
+/* ---------- notifications panel ---------- */
+const SAMPLE_NOTIFS = [
+  {t:"Requisition Pending Approval", d:"REQ-1044 · Data Analyst awaiting your approval.", m:"2 hours ago", href:"#/requisitions/REQ-1044"},
+  {t:"Duplicate Candidate Flag", d:"CAN-3303 (Kavya Suresh) flagged as a possible duplicate of CAN-3301.", m:"5 hours ago", href:"#/candidates/CAN-3303"},
+  {t:"Hiring Market Risk Flagged", d:"REQ-1050 · Site Reliability Engineer — entered budget below market benchmark in a high-difficulty, low-availability market.", m:"Yesterday", href:"#/requisitions/REQ-1050/market"},
+  {t:"Shortlist Generated", d:"REQ-1042 · Senior Backend Engineer shortlist (Top-K) is ready for review.", m:"2 days ago", href:"#/requisitions/REQ-1042/shortlist"},
+  {t:"Offer Acceptance Status Updated", d:"CAN-3201 (Nikhil Bhatt) accepted the offer.", m:"3 weeks ago", href:"#/candidates/CAN-3201"},
+];
+function renderNotifPanel(){
+  const el = document.getElementById("notifPanel");
+  if(!state.notifOpen){ el.style.display="none"; return; }
+  el.style.display="block";
+  el.innerHTML = `<div class="notepop">
+    <h4>Notifications <span style="color:var(--ink-faint);font-weight:400;">— §13</span></h4>
+    ${SAMPLE_NOTIFS.map(n=>`<div class="note-item" style="cursor:pointer" onclick="go('${n.href}');closeNotif();"><div class="t">${esc(n.t)}</div><div class="d">${esc(n.d)}</div><div class="m">${esc(n.m)}</div></div>`).join("")}
+  </div>`;
+}
+function closeNotif(){ state.notifOpen=false; renderNotifPanel(); }
+document.getElementById("notifBtn").onclick = (e)=>{ e.stopPropagation(); state.notifOpen=!state.notifOpen; renderNotifPanel(); };
+document.addEventListener("click", ()=>{ if(state.notifOpen){ closeNotif(); } });
+
+/* =====================================================================
+   PAGE: DASHBOARD  (Section 18)
+   ===================================================================== */
+function pageDashboard(){
+  setCrumbs([{label:"Dashboard"}]);
+  const open = REQS.filter(r=>!["Fulfilled","Withdrawn","Closed"].includes(r.reqStatus));
+  const pendingApprovals = pendingApprovalCount();
+  const liveJobs = REQS.filter(r=>r.linkedin && r.linkedin.status==="Live");
+  const totalCandidates = CANDIDATES.length;
+  const interviewing = CANDIDATES.filter(c=>c.state==="Interviewing").length;
+  const pendingDecisions = CANDIDATES.filter(c=>c.decision && c.decision.status==="Pending Decision").length;
+  const offersOut = CANDIDATES.filter(c=>c.offer==="Offer Pending"||c.state==="Offer Pending").length;
+  const dupFlags = CANDIDATES.filter(c=>c.state==="Flagged - Possible Duplicate");
+  const marketRiskReqs = REQS.filter(r=>r.locationIntel && r.locationIntel.marketRisks && r.locationIntel.marketRisks.length);
+  const closedRecently = REQS.filter(r=>["Fulfilled","Withdrawn","Closed"].includes(r.reqStatus));
+
+  return `
+    <div class="page-head"><div>
+      <div class="eyebrow">Talent Dashboard · §18</div>
+      <h1>Hiring Overview</h1>
+      <div class="page-sub">Portfolio-level summary of open requisitions and overall hiring health for Meridian Systems GCC. Every role sees this dashboard (View); content below is role-appropriate and scoped per RBAC §12.</div>
+    </div></div>
+    ${capabilityBar(["View Talent Dashboard"])}
+
+    <div class="grid grid-4" style="margin-bottom:16px;">
+      <div class="stat"><div class="n">${open.length}</div><div class="l">Open Requisitions</div><div class="t">of ${REQS.length} total</div></div>
+      <div class="stat"><div class="n">${pendingApprovals}</div><div class="l">Approval Status — pending</div><div class="t">requisitions, JDs, posts &amp; decisions</div></div>
+      <div class="stat"><div class="n">${liveJobs.length}</div><div class="l">Active Job Postings</div><div class="t">live on LinkedIn (6S account)</div></div>
+      <div class="stat"><div class="n">${totalCandidates}</div><div class="l">Candidate Pipeline</div><div class="t">across all open requisitions</div></div>
+    </div>
+
+    <div class="grid grid-3" style="margin-bottom:16px;">
+      <div class="card"><div class="card-head"><h3>Screening / Shortlist</h3></div><div class="card-pad">
+        <div class="kv"><dt>Screened</dt><dd>${CANDIDATES.filter(c=>["Screened","Evaluated","Shortlisted","Not Shortlisted","Interviewing","Interview Complete","Offer Pending","Offer Accepted","Offer Declined"].includes(c.state)).length} candidates</dd>
+        <dt>Shortlisted (Top-K)</dt><dd>${CANDIDATES.filter(c=>c.state==="Shortlisted"||c.state==="Interviewing").length} candidates ${bdrChip('topK')}</dd></div>
+      </div></div>
+      <div class="card"><div class="card-head"><h3>Interviews</h3></div><div class="card-pad">
+        <div class="kv"><dt>In progress</dt><dd>${interviewing} candidates</dd><dt>Pending decision</dt><dd>${pendingDecisions} candidates</dd></div>
+      </div></div>
+      <div class="card"><div class="card-head"><h3>Offer Acceptance</h3></div><div class="card-pad">
+        <div class="kv"><dt>Accepted</dt><dd>${CANDIDATES.filter(c=>c.offer==="Accepted").length}</dd><dt>Declined</dt><dd>${CANDIDATES.filter(c=>c.offer==="Declined").length}</dd></div>
+      </div></div>
+    </div>
+
+    <div class="grid grid-2" style="align-items:start;">
+      <div class="card">
+        <div class="card-head"><h3>Open Requisitions</h3><span class="hint">status per requisition</span></div>
+        <div class="scrollx"><table class="dt">
+          <tr><th>Requisition</th><th>Location</th><th>Stage</th><th>Status</th></tr>
+          ${open.map(r=>`<tr class="link" onclick="go('#/requisitions/${r.id}')">
+            <td class="name-cell"><div class="primary">${esc(r.title)}</div><div class="secondary mono">${r.id}</div></td>
+            <td>${esc(r.location)}</td>
+            <td>${esc(STAGES[r.stageIdx].name)}</td>
+            <td>${stateBadge(r.reqStatus)}</td>
+          </tr>`).join("")}
+        </table></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Attention Required</h3><span class="hint">overdue approvals, unresolved flags</span></div>
+        <div class="card-pad" style="display:flex;flex-direction:column;gap:10px;">
+          ${dupFlags.map(c=>`<div class="callout warm" style="cursor:pointer" onclick="go('#/candidates/${c.id}')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 4.5a7 7 0 0 0-10.6 9M6.5 19.5a7 7 0 0 0 10.6-9"/><path d="M6.5 4.5v4.5H11M17.5 19.5V15H13"/></svg><div><b>${esc(c.id)} · Unresolved duplicate flag</b>${esc(c.name)} — ${esc(c.duplicate.reason)}</div></div>`).join("")}
+          ${marketRiskReqs.map(r=>`<div class="callout warning" style="cursor:pointer" onclick="go('#/requisitions/${r.id}/market')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l8.5 14.5H3.5Z"/><path d="M12 10v4M12 16.5v.01"/></svg><div><b>${esc(r.id)} · Hiring market risk</b>${esc(r.title)} — ${r.locationIntel.marketRisks[0].text}</div></div>`).join("")}
+          ${dupFlags.length===0 && marketRiskReqs.length===0 ? `<div class="empty">Nothing outstanding right now.</div>`:""}
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-head"><h3>Closure</h3><span class="hint">recently closed and pending-closure requisitions</span></div>
+      <div class="scrollx"><table class="dt">
+        <tr><th>Requisition</th><th>Final Status</th><th>Closed On</th></tr>
+        ${closedRecently.map(r=>`<tr class="link" onclick="go('#/requisitions/${r.id}/closure')">
+          <td class="name-cell"><div class="primary">${esc(r.title)}</div><div class="secondary mono">${r.id}</div></td>
+          <td>${stateBadge(r.reqStatus)}</td>
+          <td class="mono">${esc(r.closure?r.closure.closedOn:(r.linkedin&&r.linkedin.closedOn)||"—")}</td>
+        </tr>`).join("")}
+      </table></div>
+    </div>
+  `;
+}
+
+/* =====================================================================
+   PAGE: MODULE OVERVIEW (Sections 1, 2, 6, 7)
+   ===================================================================== */
+function pageOverview(){
+  setCrumbs([{label:"Dashboard", href:"#/dashboard"}, {label:"Module Overview"}]);
+  return `
+    <div class="page-head"><div>
+      <div class="eyebrow">Document Overview · §1–7</div>
+      <h1>Talent Module</h1>
+      <div class="page-sub">${esc(MODULE.purpose)}</div>
+    </div></div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-head"><h3>Boundary</h3></div>
+      <div class="card-pad"><p style="margin:0;">${esc(MODULE.boundary)}</p></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-head"><h3>Relationship to other Dewdrop modules</h3></div>
+      <div class="card-pad" style="display:flex;flex-direction:column;gap:14px;">
+        ${MODULE.relationships.map(r=>`<div><div style="font-weight:700;margin-bottom:3px;">${esc(r.to)}</div><div style="color:var(--ink-soft);">${esc(r.body)}</div></div>`).join("")}
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card"><div class="card-head"><h3>In Scope</h3></div><div class="card-pad">
+        <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;">${MODULE.inScope.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
+      </div></div>
+      <div class="card"><div class="card-head"><h3>Out of Scope</h3></div><div class="card-pad">
+        <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;color:var(--ink-soft);">${MODULE.outOfScope.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
+      </div></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;"><div class="card-head"><h3>The 15 tracked lifecycle stages</h3><span class="hint">Section 9 — each stage is audited separately</span></div>
+      <div class="card-pad">
+        <div class="stepper">
+          ${STAGES.map((s,i)=>`<div class="step done" onclick="go('#/requisitions/REQ-1042')" title="${esc(s.name)}"><div class="line"></div><div class="dotc">${s.n}</div><div class="lbl">${esc(s.name)}</div></div>`).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* =====================================================================
+   PAGE: ROLES & ACCESS (Sections 8, 12, 19)
+   ===================================================================== */
+function pageRoles(){
+  setCrumbs([{label:"Dashboard", href:"#/dashboard"}, {label:"Roles & Access"}]);
+  const actions = Object.keys(RBAC);
+  const me = PERSONA_DETAIL.find(p=>p.role===state.role);
+
+  // Group every RBAC action by the grade the *current* role holds, so the page opens
+  // on "what can I actually do" rather than the full 24-row x 6-role matrix.
+  const groups = {E:[], A:[], V:[], "-":[]};
+  actions.forEach(a=>groups[RBAC[a][state.role]].push(a));
+  const noteGrade = RBAC_NOTES_RULE[state.role]==="-" ? "-" : "V";
+  (noteGrade==="-"?groups["-"]:groups["V"]).push(`View Restricted Internal Notes — ${RBAC_NOTES_RULE[state.role]}`);
+
+  const groupMeta = [
+    {g:"E", label:"Can Edit / Create", cls:"pg-edit"},
+    {g:"A", label:"Can Approve*", cls:"pg-approve"},
+    {g:"V", label:"View Only", cls:"pg-view"},
+    {g:"-", label:"No Access", cls:"pg-none"},
+  ];
+
+  return `
+    <div class="page-head"><div>
+      <div class="eyebrow">Personas &amp; RBAC · §8, §12</div>
+      <h1>Roles &amp; Access</h1>
+      <div class="page-sub">RM and Chief of Staff are equal-purpose engagement-management roles and receive equivalent access unless a documented reason exists.</div>
+    </div></div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-head"><h3>Your access as ${esc(state.role)}</h3><span class="badge b-accent">${esc(me.tag)}</span></div>
+      <div class="card-pad">
+        <p style="color:var(--ink-soft);margin-bottom:6px;">${esc(me.resp)}</p>
+        <p style="color:var(--ink-faint);font-size:12px;margin-bottom:16px;"><b>Needs:</b> ${esc(me.needs)}</p>
+        <div class="perm-groups">
+          ${groupMeta.map(gm=>`
+            <div class="perm-group ${gm.cls}">
+              <h5><span class="pdot"></span>${esc(gm.label)} <span class="mono" style="font-weight:400;">(${groups[gm.g].length})</span></h5>
+              ${groups[gm.g].length ? `<ul>${groups[gm.g].map(a=>`<li>${esc(a)}</li>`).join("")}</ul>` : `<div class="empty-mini">None</div>`}
+            </div>`).join("")}
+        </div>
+      </div>
+    </div>
+
+    <details class="acc" style="margin-bottom:16px;">
+      <summary><svg class="icon chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg><span class="s-title">All six personas</span><span class="s-sum">Client · Consultant · RM · Executive Sponsor · Chief of Staff · Project Admin</span></summary>
+      <div class="acc-body">
+        <div class="grid grid-3">
+          ${PERSONA_DETAIL.map(p=>`
+            <div class="card" style="${p.role===state.role?'border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft);':''}">
+              <div class="card-head"><h3 style="font-size:13.5px;">${esc(p.role)}</h3>${p.role===state.role?'<span class="badge b-accent">Current</span>':''}</div>
+              <div class="card-pad">
+                <div class="badge b-slate" style="margin-bottom:8px;">${esc(p.desc.split(';')[0])}</div>
+                <p style="margin:0;color:var(--ink-soft);font-size:12.5px;">${esc(p.resp)}</p>
+              </div>
+            </div>`).join("")}
+        </div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><svg class="icon chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg><span class="s-title">Full RBAC matrix</span><span class="s-sum">All ${actions.length} actions × all 6 roles — §12 · E=Edit/Create · A=Approve · V=View · —=No access · *=subject to approval hierarchy</span></summary>
+      <div class="acc-body" style="padding:0 0 16px;">
+        <div class="scrollx"><table class="dt">
+          <tr><th>Talent Action</th>${ROLES.map(r=>`<th style="text-align:center;" class="${r===state.role?'my-col':''}">${esc(r)}</th>`).join("")}</tr>
+          ${actions.map(a=>`<tr><td style="font-weight:600;">${esc(a)}</td>${ROLES.map(r=>{
+            const g = RBAC[a][r];
+            return `<td style="text-align:center;" class="${r===state.role?'my-col':''}"><span class="badge ${GRADE_CLASS[g]}">${g}</span></td>`;
+          }).join("")}</tr>`).join("")}
+          <tr><td style="font-weight:600;">View Restricted Internal Consultant/RM Notes</td>${ROLES.map(r=>`<td style="text-align:center;font-size:11.5px;color:var(--ink-soft);" class="${r===state.role?'my-col':''}">${esc(RBAC_NOTES_RULE[r])}</td>`).join("")}</tr>
+        </table></div>
+      </div>
+    </details>
+  `;
+}
+
+/* =====================================================================
+   REQUISITIONS — list + workspace (Sections 9, 10, 11)
+   ===================================================================== */
+function pageRequisitionsList(){
+  setCrumbs([{label:"Dashboard", href:"#/dashboard"}, {label:"Requisitions"}]);
+  return `
+    <div class="page-head"><div>
+      <div class="eyebrow">Requisitions · §10.1</div>
+      <h1>Requisitions</h1>
+      <div class="page-sub">The formal hiring-need record combining structured fields with client-provided requirements — the starting point of the recruitment lifecycle.</div>
+    </div>
+    ${actionButton("Create / Edit Requisition","New Requisition",{primary:true})}
+    </div>
+    ${capabilityBar(["Create / Edit Requisition","Approve Requisition*"])}
+    <div class="card">
+      <div class="scrollx"><table class="dt">
+        <tr><th>Requisition</th><th>Location</th><th>Positions</th><th>Current Stage</th><th>Requisition Status</th><th>Job Posting</th></tr>
+        ${REQS.map(r=>`<tr class="link" onclick="go('#/requisitions/${r.id}')">
+          <td class="name-cell"><div class="primary">${esc(r.title)}</div><div class="secondary mono">${r.id} · ${esc(r.dept)}</div></td>
+          <td>${esc(r.location)}</td>
+          <td>${r.positions}</td>
+          <td>${STAGES[r.stageIdx].n}. ${esc(STAGES[r.stageIdx].name)}</td>
+          <td>${stateBadge(r.reqStatus)}</td>
+          <td>${stateBadge(r.postingStatus)}</td>
+        </tr>`).join("")}
+      </table></div>
+    </div>
+  `;
+}
+
+const REQ_TABS = [
+  {key:"", label:"Workspace"},
+  {key:"requirements", label:"Client Requirements"},
+  {key:"market", label:"Market Intelligence"},
+  {key:"jd", label:"JD & Budget"},
+  {key:"approval", label:"Approval"},
+  {key:"linkedin", label:"LinkedIn Post"},
+  {key:"candidates", label:"Candidates"},
+  {key:"shortlist", label:"Shortlist"},
+  {key:"interviews", label:"Interviews"},
+  {key:"decision", label:"Hiring Decisions"},
+  {key:"offer", label:"Offer Acceptance"},
+  {key:"closure", label:"Closure"},
+];
+function pageRequisition(id, tab){
+  const r = reqOf(id);
+  if(!r){ setCrumbs([{label:"Dashboard", href:"#/dashboard"},{label:"Requisitions", href:"#/requisitions"},{label:"Not found"}]); return `<div class="empty">Requisition ${esc(id)} not found.</div>`; }
+  tab = tab || "";
+  const tabDef = REQ_TABS.find(t=>t.key===tab) || REQ_TABS[0];
+  setCrumbs([{label:"Dashboard", href:"#/dashboard"},{label:"Requisitions", href:"#/requisitions"},{label:r.title+" · "+r.id, href:"#/requisitions/"+r.id}, ...(tab?[{label:tabDef.label}]:[])]);
+
+  const stepper = `<div class="stepper">${STAGES.map((s,i)=>{
+    const cls = i<r.stageIdx?"done":(i===r.stageIdx?"current":"");
+    return `<div class="step ${cls}" title="${esc(s.name)}" onclick="go('#/requisitions/${r.id}/${stageToTab(s.id)}')"><div class="line"></div><div class="dotc">${i<r.stageIdx?'&#10003;':s.n}</div><div class="lbl">${esc(s.name)}</div></div>`;
+  }).join("")}</div>`;
+
+  const tabsNav = `<div class="tabs">${REQ_TABS.map(t=>`<div class="tab ${t.key===tab?'active':''}" onclick="go('#/requisitions/${r.id}${t.key?'/'+t.key:''}')">${esc(t.label)}</div>`).join("")}</div>`;
+
+  let body;
+  switch(tab){
+    case "requirements": body = tabRequirements(r); break;
+    case "market": body = tabMarketIntel(r); break;
+    case "jd": body = tabJD(r) + tabBudget(r); break;
+    case "approval": body = tabApproval(r); break;
+    case "linkedin": body = tabLinkedIn(r); break;
+    case "candidates": body = tabReqCandidates(r); break;
+    case "shortlist": body = tabShortlist(r); break;
+    case "interviews": body = tabInterviews(r); break;
+    case "decision": body = tabDecision(r); break;
+    case "offer": body = tabOffer(r); break;
+    case "closure": body = tabClosure(r); break;
+    default: body = tabWorkspaceOverview(r);
+  }
+
+  return `
+    <div class="page-head"><div>
+      <div class="eyebrow mono">${r.id} · ${esc(r.dept)} · ${esc(r.location)}</div>
+      <h1>${esc(r.title)}</h1>
+      <div class="page-sub">Client: ${esc(r.client)} · Raised ${esc(r.raisedOn)} · Target timeline ${esc(r.targetTimeline)}</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">${stateBadge(r.reqStatus)}${stateBadge(r.postingStatus)}</div>
+    </div>
+    ${stepper}
+    ${tabsNav}
+    ${body}
+  `;
+}
+function stageToTab(stageId){
+  const map = {requirements:"requirements", jd:"jd", approval:"approval", linkedin:"linkedin", "li-approval":"linkedin", intake:"candidates", duplicate:"candidates", scoring:"candidates", screening:"candidates", "screen-eval":"candidates", shortlist:"shortlist", interviews:"interviews", decision:"decision", offer:"offer", closure:"closure"};
+  return map[stageId]||"";
+}
+
+function stageCard(stageId){
+  const s = STAGES.find(x=>x.id===stageId);
+  return `<div class="card" style="margin-top:16px;">
+    <div class="card-head"><h3>Stage ${s.n} — ${esc(s.name)}</h3><span class="hint">FRD §9</span></div>
+    <div class="card-pad">
+      <div class="kv">
+        <dt>Trigger</dt><dd>${esc(s.trigger)}</dd>
+        <dt>Actor</dt><dd>${esc(s.actor)}</dd>
+        <dt>System Action</dt><dd>${esc(s.system)}</dd>
+        <dt>AI Action</dt><dd>${s.ai==="None."||s.ai==="None at this stage."||s.ai.startsWith("None")?esc(s.ai):`${aiChip()} ${esc(s.ai)}`}</dd>
+        <dt>Approval Requirement</dt><dd>${esc(s.approval)}</dd>
+        <dt>Next State</dt><dd class="mono">${esc(s.next)}</dd>
+      </div>
+    </div>
+  </div>`;
+}
+
+function tabWorkspaceOverview(r){
+  const cands = candsOf(r.id);
+  return `
+    ${capabilityBar(["Create / Edit Requisition","Approve Requisition*","Edit Budget"])}
+    <div class="grid grid-2">
+      <div class="card"><div class="card-head"><h3>Requisition Summary</h3></div><div class="card-pad">
+        <div class="kv">
+          <dt>Role / Title</dt><dd>${esc(r.title)}</dd>
+          <dt>Department</dt><dd>${esc(r.dept)}</dd>
+          <dt>Location</dt><dd>${esc(r.location)}</dd>
+          <dt>Number of Positions</dt><dd>${r.positions}</dd>
+          <dt>Hiring Rationale</dt><dd>${esc(r.requirements.rationale)}</dd>
+          <dt>Target Timeline</dt><dd>${esc(r.targetTimeline)}</dd>
+          <dt>Requisition Status</dt><dd>${stateBadge(r.reqStatus)}</dd>
+        </div>
+      </div></div>
+      <div class="card"><div class="card-head"><h3>Pipeline Snapshot</h3></div><div class="card-pad">
+        <div class="kv">
+          <dt>JD Status</dt><dd>${stateBadge(r.jdStatus)}</dd>
+          <dt>Budget Status</dt><dd>${stateBadge(r.budgetStatus)}</dd>
+          <dt>Job Posting</dt><dd>${stateBadge(r.postingStatus)}</dd>
+          <dt>Candidates</dt><dd>${cands.length} in pipeline</dd>
+          <dt>Shortlisted</dt><dd>${cands.filter(c=>c.state==="Shortlisted"||c.state==="Interviewing").length}</dd>
+          <dt>Decisions made</dt><dd>${cands.filter(c=>c.decision&&(c.decision.status==="Approved"||c.decision.status==="Rejected")).length}</dd>
+        </div>
+      </div></div>
+    </div>
+    ${stageCard(STAGES[Math.min(r.stageIdx,STAGES.length-1)].id)}
+  `;
+}
+
+function tabRequirements(r){
+  return `
+    ${capabilityBar(["Submit Client Requirements","Create / Edit Requisition"])}
+    <div class="card"><div class="card-head"><h3>Client Requirements${tip('A Requisition begins in Draft and requires a minimum field set — role/title, department, location, positions, client requirements — before it can proceed to JD generation. Mandatory fields beyond this minimum set: Business Decision Required (§10.1).')}</h3><span class="hint">§10.1 — Fields Captured</span></div>
+      <div class="card-pad">
+        <div class="kv">
+          <dt>Role / Title</dt><dd>${esc(r.title)}</dd>
+          <dt>Department / Function</dt><dd>${esc(r.dept)}</dd>
+          <dt>Location</dt><dd>${esc(r.location)} <span class="badge b-slate">Referenced from Advisory — not re-entered</span></dd>
+          <dt>Number of Positions</dt><dd>${r.positions}</dd>
+          <dt>Required Skills</dt><dd><div class="pill-row">${r.requirements.skills.map(s=>`<span class="skill-chip">${esc(s)}</span>`).join("")}</div></dd>
+          <dt>Experience</dt><dd>${esc(r.requirements.experience)}</dd>
+          <dt>Qualifications</dt><dd>${esc(r.requirements.qualifications)}</dd>
+          <dt>Hiring Rationale</dt><dd>${esc(r.requirements.rationale)}</dd>
+          <dt>Target Timeline</dt><dd>${esc(r.targetTimeline)}</dd>
+          <dt>Additional Requirements</dt><dd>${esc(r.requirements.additional)}</dd>
+        </div>
+      </div>
+    </div>
+    ${r.notes && r.notes.length ? noteBlock(r.notes) : ""}
+  `;
+}
+
+/* FRD Part II — Location Intelligence → Talent Intelligence Integration (§24–34).
+   Location Intelligence is a market-intelligence layer, not a location field provider or a source
+   of actual candidates (§24.2); Talent consumes its outputs as decision support only — it never
+   owns, duplicates, or silently overrides the location evaluation itself (§34). */
+function tabMarketIntel(r){
+  const li = r.locationIntel;
+  if(!li){
+    return `${capabilityBar(["View Location Intelligence Market Data"])}<div class="card"><div class="empty">Market intelligence has not been queried yet — this becomes available once the requisition reaches JD &amp; Budget (Stage 2), when role, experience band, city and domain are resolvable (§26, §29).</div></div>`;
+  }
+  return `
+    ${capabilityBar(["View Location Intelligence Market Data"])}
+    <div class="card" style="margin-bottom:14px;"><div class="card-head"><h3>Location Context${tip('Location Intelligence sits between Advisory and Talent in the intelligence chain: it evaluates location suitability and hands Talent a client-approved Location plus market intelligence. Talent references this context; it does not redefine it (§24, §25).')}</h3><span class="hint">Snapshot · ${esc(li.dataDate)}</span></div>
+      <div class="card-pad">
+        <div class="kv">
+          <dt>Approved Location</dt><dd>${esc(r.location)} <span class="badge b-slate">Referenced from Advisory / Location Intelligence — not editable in Talent</span></dd>
+          <dt>Selected Advisory Domain</dt><dd>${li.domain} ${bdrChip('domainTaxonomy')}</dd>
+          <dt>Data Snapshot</dt><dd>Taken ${esc(li.dataDate)} at requisition/JD creation — an auditable snapshot, not a live feed (§30.1).</dd>
+          <dt>Team Size / Scale Horizon${tip("The client's intended team size and scale-up horizon for the location, as captured by Advisory / Location Intelligence. Optional field — informs Workforce/Cost Planning (§26.J) and scale-related Hiring Market Risk flags (§26.H) where available. Reference only; not editable in Talent (§25).")}</dt><dd>${li.teamScaleHorizon ? `~${li.teamScaleHorizon.headcount} headcount over ${esc(li.teamScaleHorizon.horizon)} <div style="color:var(--ink-soft);font-weight:400;margin-top:2px;">${esc(li.teamScaleHorizon.note)}</div>` : `<span class="badge b-slate">Not provided by Advisory for this requisition</span> <span style="color:var(--ink-soft);">— optional field (§25)</span>`}</dd>
+        </div>
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <button class="btn btn-sm" onclick="toast('Market intelligence refresh recorded (prototype — no persistence).')">Refresh Market Intelligence</button>
+          ${bdrChip('refreshCadence')}
+        </div>
+        <div class="note-line" style="margin-top:10px;">${bdrChip('upstreamChangeWorkflow')}<span>Whether an upstream Advisory/Location Intelligence change after approval triggers re-approval or a budget re-review is not assumed here (§31).</span></div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-bottom:14px;">
+      <div class="card"><div class="card-head"><h3>Hiring Difficulty${tip('Uses Location Intelligence indicators — skill availability, domain ecosystem, graduate output, lateral mobility, and delivery readiness — as market-level hiring-difficulty intelligence. Market-level talent availability is permanently distinguished from actual candidates in the Talent pipeline (§26.D).')}</h3><span class="badge ${difficultyBadgeClass(li.hiringDifficulty.level)}"><span class="pdot"></span>${esc(li.hiringDifficulty.level)}</span></div>
+        <div class="card-pad">
+          <div class="kv">${li.hiringDifficulty.factors.map(f=>`<dt>${esc(f.label)}</dt><dd>${f.value}</dd>`).join("")}${li.deliveryReadiness?`<dt>Delivery Readiness${tip("Location Intelligence's assessment of the location's overall readiness to support delivery at the client's intended scale. Used in Hiring Market Risk (§26.H) and Location Reconsideration (§26.I).")}</dt><dd><span class="badge ${difficultyBadgeClass(li.deliveryReadiness.level)}"><span class="pdot"></span>${esc(li.deliveryReadiness.level)}</span><div style="color:var(--ink-soft);font-weight:400;margin-top:2px;">${esc(li.deliveryReadiness.note)}</div></dd>`:""}</div>
+        </div>
+      </div>
+      <div class="card"><div class="card-head"><h3>Skill Availability${tip('Market intelligence for the requisition\'s required skills. Strong availability of individual skills must not be assumed to mean strong availability of the combined skill profile the requisition actually needs (§26.E).')}</h3></div>
+        <div class="card-pad">
+          <div class="kv">${li.skillAvailability.map(s=>`<dt>${esc(s.skill)}</dt><dd><span class="badge ${availabilityBadgeClass(s.level)}"><span class="pdot"></span>${esc(s.level)}</span></dd>`).join("")}</div>
+          <div class="note-line" style="margin-top:10px;margin-bottom:0;">${bdrChip('roleSkillNormalization')}<span>Matching this requisition's free-text skills to Location Intelligence's taxonomy (§28).</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;"><div class="card-head"><h3>Sourcing Strategy${tip('Where sufficient data supports it, AI may suggest sourcing considerations. These remain advisory only and never replace Consultant/RM sourcing judgment (§26.F).')}</h3>${aiChip("AI-assisted · advisory only")}</div>
+      <div class="card-pad">
+        ${li.sourcingSuggestions.length ? `<ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;">${li.sourcingSuggestions.map(s=>`<li>${s}</li>`).join("")}</ul>` : `<div class="empty" style="padding:14px;">No sourcing considerations flagged for this requisition.</div>`}
+      </div>
+    </div>
+
+    <div class="card"><div class="card-head"><h3>Hiring Market Risk${tip('Identifies possible risks — scarce skill availability, constrained senior talent, market salary exceeding budget, domain-specific scarcity, or limited scalability. Risk flags are decision support surfaced to Consultant/RM/Chief of Staff; they never themselves change any approved requisition data (§26.H).')}</h3></div>
+      <div class="card-pad" style="display:flex;flex-direction:column;gap:10px;">
+        ${li.marketRisks.length ? li.marketRisks.map(mr=>`<div class="callout warning"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l8.5 14.5H3.5Z"/><path d="M12 10v4M12 16.5v.01"/></svg><div>${mr.text}</div></div>`).join("") : `<div class="empty">No elevated hiring-market risk flagged for this requisition.</div>`}
+        ${li.locationReconsideration ? `<div class="callout warm"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s7-6.5 7-11.5A7 7 0 0 0 5 9.5C5 14.5 12 21 12 21Z"/></svg><div><b>Location Reconsideration${tip('If Talent identifies a significant hiring-market constraint, the system may flag the issue and optionally recommend the location be reviewed. Talent must NOT independently change the approved location — any change follows the Advisory / Location Intelligence approval flow (§26.I, §31).')}</b>${li.locationReconsideration.text}</div></div>` : ""}
+      </div>
+    </div>
+    <div class="note-line" style="margin-top:10px;">${bdrChip('benchmarkVisibility')}<span>Client sees a derived competitiveness label only, not the underlying benchmark figures, per RBAC §12 (V*).</span></div>
+    <div class="note-line" style="margin-top:2px;">${bdrChip('costPlanningHandoff')}<span>Workforce/cost planning (§26.J) is not built here — Talent hands off relevant cost inputs rather than owning cost-modelling logic.</span></div>
+  `;
+}
+
+function noteBlock(notes){
+  const visible = notes.filter(n => state.role==="RM" ? true : state.role==="Consultant" ? n.author==="Consultant" : false);
+  return `<div class="card" style="margin-top:14px;">
+    <div class="card-head"><h3>Restricted Internal Notes</h3><span class="hint">Consultant/RM only — never exposed to Client, Executive Sponsor, or Chief of Staff by default</span></div>
+    <div class="card-pad">
+      ${visible.length? visible.map(n=>`<div style="margin-bottom:8px;"><span class="badge b-slate">${esc(n.author)}</span> ${esc(n.text)}</div>`).join("") : `<div class="empty" style="padding:14px;">${state.role} has no default access to restricted internal notes (RBAC §12/§19).</div>`}
+    </div>
+  </div>`;
+}
+
+function tabJD(r){
+  if(!r.jdVersions || r.jdVersions.length===0){
+    return `${capabilityBar(["Generate / Edit JD","Approve JD*"])}<div class="card"><div class="empty">JD has not been generated yet — this requisition is still at Stage 1 (Requisition + Client Requirements). ${aiChip("JD generation triggers once minimum requirements are captured")}</div></div>`;
+  }
+  const final = r.jdVersions[r.jdVersions.length-1];
+  return `
+    ${capabilityBar(["Generate / Edit JD","Approve JD*"])}
+    <div class="card">
+      <div class="card-head"><h3>Job Description${tip('First draft generated by AI from approved requirements. AI cannot approve its own JD — approval is a human action (§10.4).')}</h3>${stateBadge(r.jdStatus)}</div>
+      <div class="card-pad">
+        <div class="note-line">${aiChip("AI-generated first draft")}<span>Every version is retained — edits create a new version, never overwrite history.</span></div>
+        ${r.locationIntel ? `<div class="note-line" style="margin-top:2px;"><span class="badge b-slate">Location Intelligence-informed</span><span>Drafting was optionally informed by Location Intelligence market context for ${esc(r.location)} (${r.locationIntel.domain}) — this may inform framing, but never silently modifies the client-approved requirements above (§26.G).</span></div>` : ""}
+        <div class="subhead">Version History</div>
+        <div class="scrollx"><table class="dt">
+          <tr><th>Version</th><th>Author</th><th>Date</th><th>Note</th></tr>
+          ${r.jdVersions.map(v=>`<tr><td class="mono">v${v.v}</td><td>${v.by.startsWith("AI")?aiChip(v.by):esc(v.by)}</td><td class="mono">${esc(v.date)}</td><td>${esc(v.note)}</td></tr>`).join("")}
+        </table></div>
+      </div>
+    </div>
+  `;
+}
+
+function tabBudget(r){
+  if(!r.budget){
+    return `${capabilityBar(["Edit Budget"])}<div class="card"><div class="empty">Budget has not been captured yet — this requisition is still at Stage 1.</div></div>`;
+  }
+  const li = r.locationIntel;
+  const comp = competitivenessLabel(r.budget.entered, li && li.benchmark);
+  const clientRestricted = state.role==="Client"; // RBAC §12 marks Client V* on this data — derived label only by default (§12, §21, §34)
+  return `
+    ${capabilityBar(["Edit Budget","Override AI Salary Recommendation"])}
+    ${li ? (clientRestricted ? `
+    <div class="callout info" style="margin-bottom:14px;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 8v.01"/></svg><div><b>Market Intelligence${tip('Client visibility into Location Intelligence market data is marked V* in RBAC §12: limited to a derived competitiveness label by default. Full visibility into underlying benchmark values and data source is Business Decision Required.')}</b>The underlying benchmark and AI salary recommendation figures aren't shown to the Client role by default — see Budget Competitiveness below for the derived signal. ${bdrChip('benchmarkVisibility')}</div></div>
+    ` : `
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-head"><h3>Market Salary Benchmark${tip('Location Intelligence market compensation data for this role/experience/city/domain combination. Displayed only where resolvable — never fabricated when unavailable (§25, §26.A).')}</h3><span class="hint">Location Intelligence · ${esc(li.dataDate)}</span></div>
+      <div class="card-pad">
+        <div class="kv">
+          <dt>Benchmark Range</dt><dd class="mono">${money(li.benchmark.min)} – ${money(li.benchmark.max)}</dd>
+          <dt>Coverage</dt><dd>${esc(li.benchmark.coverage)} ${bdrChip('dataFallback')}</dd>
+          <dt>Source</dt><dd>Location Intelligence <span class="badge b-slate">Referenced — not editable in Talent</span> ${bdrChip('liDataContract')}</dd>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-head"><h3>AI Salary Recommendation${tip('AI may recommend a salary range using relevant Location Intelligence data. The FRD requires five distinct, clearly labeled values: source market benchmark, system/business-rule calculation, AI recommendation, human-entered budget, and final approved budget — AI never invents market data and never finalizes a budget itself (§26.B, §32). This prototype\'s sample data does not model a separate system/business-rule calculation figure.')}</h3>${aiChip("AI-assisted · decision support")}</div>
+      <div class="card-pad">
+        <div class="kv">
+          <dt>Market Benchmark</dt><dd class="mono">${money(li.benchmark.min)} – ${money(li.benchmark.max)}</dd>
+          <dt>AI Recommendation</dt><dd class="mono">${money(li.aiRecommendation.value)}<div style="color:var(--ink-soft);font-weight:400;margin-top:2px;">${esc(li.aiRecommendation.note)}</div></dd>
+          <dt>Human-Entered Budget</dt><dd class="mono">${money(r.budget.entered)}</dd>
+          <dt>Final Approved Budget</dt><dd class="mono">${r.budgetStatus==="Approved"?money(r.budget.entered):"—"}</dd>
+        </div>
+        ${li.override
+          ? `<div class="note-line" style="margin-top:12px;align-items:flex-start;"><span>${esc(li.override.by)} overrode this on ${esc(li.override.date)}: ${money(li.override.original)} → ${money(li.override.final)}. Reason: ${esc(li.override.reason)}. The original AI recommendation is retained, never overwritten (§33.3).</span></div>`
+          : `<div style="margin-top:12px;">${actionButton("Override AI Salary Recommendation","Override recommendation")}</div>`}
+      </div>
+    </div>
+    `) : `<div class="callout info" style="margin-bottom:14px;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 8v.01"/></svg><div><b>Market intelligence unavailable</b>No Location Intelligence data is resolvable for this role/city/domain combination yet — market data is never fabricated when unavailable (§26.B, §29).</div></div>`}
+    <div class="card"><div class="card-head"><h3>Budget</h3>${stateBadge(r.budgetStatus)}</div><div class="card-pad">
+      <div class="kv">
+        <dt>Entered Value</dt><dd class="mono">${money(r.budget.entered)}</dd>
+        <dt>Currency</dt><dd>${esc(r.budget.currency)} ${bdrChip('currency')}</dd>
+        <dt>Entered By</dt><dd>${esc(r.budget.enteredBy)}</dd>
+        <dt>Budget Competitiveness${tip('Compares the proposed/entered budget against the market benchmark: Below Market, Around Market, Above Market, or Insufficient Data. The exact threshold methodology is not defined in the FRD (§26.C).')}</dt><dd><span class="badge ${comp.cls}"><span class="pdot"></span>${comp.label}</span> ${bdrChip('competitivenessThresholds')}</dd>
+      </div>
+    </div></div>
+  `;
+}
+
+function tabApproval(r){
+  if(!r.approvals || r.approvals.length===0){
+    return `${capabilityBar(["Approve Requisition*"])}<div class="card"><div class="empty">Not yet submitted for approval.</div></div>`;
+  }
+  return `
+    ${capabilityBar(["Approve Requisition*","Approve JD*"])}
+    <div class="card">
+      <div class="card-head"><h3>Approval Log${tip('States: Pending / Approved / Rejected / Returned for Modification. Every action records approver, decision, timestamp and comments in the audit trail (§14). Exact approval hierarchy: Business Decision Required (§21).')}</h3><span class="hint">${bdrChip('approvalHierarchy')}</span></div>
+      <div class="scrollx"><table class="dt">
+        <tr><th>Gate</th><th>Approver</th><th>Decision</th><th>Date</th><th>Comment</th></tr>
+        ${r.approvals.map(a=>`<tr><td>${esc(a.stage)}</td><td>${esc(a.by)}</td><td>${stateBadge(a.decision==="Pending"?"Pending Approval":a.decision)}</td><td class="mono">${esc(a.date)}</td><td>${esc(a.comment||"—")}</td></tr>`).join("")}
+      </table></div>
+      ${r.reqStatus==="Pending Approval"?`<div class="card-pad" style="border-top:1px solid var(--line);display:flex;gap:10px;">${actionButton("Approve Requisition*","Approve Requisition")}</div>`:""}
+    </div>
+  `;
+}
+
+function tabLinkedIn(r){
+  const li = r.linkedin;
+  if(!li || li.status==="Not Started"){
+    return `${capabilityBar(["Create / Edit LinkedIn Post"])}<div class="card"><div class="empty">LinkedIn post creation begins once the Requisition is Approved (Stage 4). Not yet started.</div></div>`;
+  }
+  return `
+    ${capabilityBar(["Create / Edit LinkedIn Post","Approve LinkedIn Post*"])}
+    <div class="card">
+      <div class="card-head"><h3>LinkedIn Post — 6S-owned account${tip('Always published from the 6S-owned account, never an individual\'s personal account. A failed publish is flagged for retry rather than failing silently (§10.5). Exact publish mechanism — API vs. manual publish-and-confirm — is Business Decision Required (§22).')}</h3>${stateBadge(li.status)}</div>
+      <div class="card-pad">
+        <div class="note-line">${aiChip("AI-generated, JD-derived draft")}<span>Editable before submission; requires approval before it goes live.</span></div>
+        <div class="subhead">Post Draft</div>
+        <div class="card" style="background:var(--surface-2);"><div class="card-pad" style="font-size:13px;line-height:1.6;">${esc(li.draft||"")}</div></div>
+        <div class="kv" style="margin-top:14px;">
+          <dt>Approved By</dt><dd>${esc(li.approvedBy||"—")}</dd>
+          <dt>Published On</dt><dd class="mono">${esc(li.publishedOn||"—")}</dd>
+          ${li.closedOn?`<dt>Closed On</dt><dd class="mono">${esc(li.closedOn)}</dd>`:""}
+        </div>
+        ${li.status==="Pending Publication"?`<div style="margin-top:14px;">${actionButton("Approve LinkedIn Post*","Approve & Publish")}</div>`:""}
+      </div>
+    </div>
+  `;
+}
+
+function candTable(cands, opts={}){
+  if(cands.length===0) return `<div class="empty">No candidates in this view.</div>`;
+  return `<div class="scrollx"><table class="dt">
+    <tr><th>Candidate</th><th>Source</th><th>Applied</th><th>State</th>${opts.score?'<th>Resume/JD Score</th>':''}</tr>
+    ${cands.map(c=>`<tr class="link" onclick="go('#/candidates/${c.id}')">
+      <td class="name-cell"><div class="primary">${esc(c.name)}</div><div class="secondary mono">${c.id}</div></td>
+      <td>${esc(c.source)}</td>
+      <td class="mono">${esc(c.appliedOn)}</td>
+      <td>${stateBadge(c.state)}</td>
+      ${opts.score?`<td>${c.score?`<span class="mono" style="font-weight:600">${c.score.value}</span> ${aiChip('')}`:'—'}</td>`:''}
+    </tr>`).join("")}
+  </table></div>`;
+}
+
+function tabReqCandidates(r){
+  const cands = candsOf(r.id);
+  const dup = cands.filter(c=>c.state==="Flagged - Possible Duplicate");
+  return `
+    ${capabilityBar(["Add Candidate (App./Headhunting)","View Candidate Pipeline","View Duplicate Flags","View Resume vs. JD Score"])}
+    <div class="page-head" style="margin-bottom:10px;"><div class="page-sub">Two intake paths feed the same Candidate object: direct application via the published post, and manual headhunting entry by Consultant/RM. Both are followed by automated duplicate detection (§10.6).</div></div>
+    ${actionButton("Add Candidate (App./Headhunting)","Add Candidate (Manual Headhunting)",{primary:true})}
+    ${dup.length? `<div class="callout warning" style="margin:14px 0;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4.5"/><circle cx="12" cy="16.5" r=".6" fill="currentColor"/><path d="M10.6 3.6 2.9 18a1.6 1.6 0 0 0 1.4 2.4h15.4a1.6 1.6 0 0 0 1.4-2.4L13.4 3.6a1.6 1.6 0 0 0-2.8 0Z"/></svg><div><b>${dup.length} unresolved duplicate flag(s)</b>A duplicate flag never silently deletes or merges a candidate record; human review is required to confirm or dismiss it. ${bdrChip('duplicateRules')}</div></div>`:""}
+    <div class="card" style="margin-top:14px;">
+      <div class="card-head"><h3>Candidate Pipeline</h3><span class="hint">${cands.length} candidates</span></div>
+      ${candTable(cands,{score:true})}
+    </div>
+  `;
+}
+
+function tabShortlist(r){
+  const cands = candsOf(r.id).filter(c=>c.score);
+  const ranked = cands.slice().sort((a,b)=>b.score.value-a.score.value);
+  return `
+    ${capabilityBar(["View / Override Shortlist (Top-K)"])}
+    <div class="card">
+      <div class="card-head"><h3>Ranked Shortlist${tip('Computed from Screening Evaluation results across all screened candidates. Never final without human review — manual override is always supported (§10.9).')}</h3><span class="hint">${aiChip('AI-ranked')} Top-5 shown as an example — K is ${bdrChip('topK')} · confirmation step ${bdrChip('shortlistApproval')}</span></div>
+      <div class="scrollx"><table class="dt">
+        <tr><th>Rank</th><th>Candidate</th><th>Resume/JD Score</th><th>Status</th></tr>
+        ${ranked.map((c,i)=>`<tr class="link" onclick="go('#/candidates/${c.id}')">
+          <td class="mono">${i+1}${i<5?'':' (below Top-K)'}</td>
+          <td class="name-cell"><div class="primary">${esc(c.name)}</div><div class="secondary mono">${c.id}</div></td>
+          <td class="mono">${c.score.value}</td>
+          <td>${stateBadge(c.state)}</td>
+        </tr>`).join("")}
+      </table></div>
+      <div class="card-pad" style="border-top:1px solid var(--line);">${actionButton("View / Override Shortlist (Top-K)","Override ranking")}</div>
+    </div>
+  `;
+}
+
+function tabInterviews(r){
+  const cands = candsOf(r.id).filter(c=>c.interviews && c.interviews.length);
+  return `
+    ${capabilityBar(["Schedule / Manage Interview","Record Interview Evaluation"])}
+    <div class="page-head" style="margin-bottom:10px;"><div class="page-sub">Client rounds and technical rounds are tracked independently per candidate; Talent does not expand into a general-purpose calendar/meeting platform (§10.10).</div></div>
+    ${actionButton("Schedule / Manage Interview","Schedule Interview",{primary:true})}
+    ${cands.length===0?`<div class="card" style="margin-top:14px;"><div class="empty">No interviews scheduled yet for this requisition.</div></div>`:
+      cands.map(c=>`<div class="card" style="margin-top:14px;">
+        <div class="card-head"><h3>${esc(c.name)}</h3><span class="hint mono">${c.id}</span></div>
+        <div class="scrollx"><table class="dt">
+          <tr><th>Round</th><th>Participants</th><th>Status</th><th>Outcome</th><th>Notes</th></tr>
+          ${c.interviews.map(iv=>`<tr><td>${esc(iv.type)}</td><td>${esc(iv.participants)}</td><td>${stateBadge(iv.status==="Completed"?"Interview Complete":iv.status==="Scheduled"?"Interviewing":iv.status)}</td><td>${esc(iv.outcome)}</td><td>${esc(iv.notes||"—")}</td></tr>`).join("")}
+        </table></div>
+      </div>`).join("")}
+  `;
+}
+
+function tabDecision(r){
+  const cands = candsOf(r.id).filter(c=>c.decision);
+  return `
+    ${capabilityBar(["Approve / Reject Hiring Decision*"])}
+    ${cands.length===0?`<div class="card"><div class="empty">No hiring decisions recorded yet for this requisition.</div></div>`:
+    `<div class="card"><div class="card-head"><h3>Hiring Decisions${tip('The final, authoritative decision once all interview rounds are complete. AI never makes or influences it beyond the decision-support evidence already surfaced upstream. Must be made by an authorized human (§10.11, §17).')}</h3><span class="hint">States: Pending Decision / Approved / Rejected ${bdrChip('approvalHierarchy')} ${bdrChip('decisionStates')}</span></div><div class="scrollx"><table class="dt">
+      <tr><th>Candidate</th><th>Decision</th><th>Decision-Maker</th><th>Date</th><th>Reason</th></tr>
+      ${cands.map(c=>`<tr class="link" onclick="go('#/candidates/${c.id}')">
+        <td class="name-cell"><div class="primary">${esc(c.name)}</div><div class="secondary mono">${c.id}</div></td>
+        <td>${stateBadge(c.decision.status)}</td>
+        <td>${esc(c.decision.by||"—")}</td>
+        <td class="mono">${esc(c.decision.date||"—")}</td>
+        <td>${esc(c.decision.reason||"—")}</td>
+      </tr>`).join("")}
+    </table></div>
+    ${cands.some(c=>c.decision.status==="Pending Decision")?`<div class="card-pad" style="border-top:1px solid var(--line);">${actionButton("Approve / Reject Hiring Decision*","Record Decision")}</div>`:""}
+    </div>`}
+  `;
+}
+
+function tabOffer(r){
+  const cands = candsOf(r.id).filter(c=>c.offer && c.offer!=="Not Applicable");
+  return `
+    ${capabilityBar(["Update Offer Acceptance Status"])}
+    ${cands.length===0?`<div class="card"><div class="empty">No approved candidates with offer tracking yet for this requisition.</div></div>`:
+    `<div class="card"><div class="card-head"><h3>Offer Acceptance${tip('Talent tracks acceptance status only — it does not generate, issue, send, or negotiate the offer itself. Offer roll-out is explicitly out of scope (§7, §10.12).')}</h3><span class="hint">${bdrChip('offerStatusValues')}</span></div><div class="scrollx"><table class="dt">
+      <tr><th>Candidate</th><th>Offer Acceptance Status</th><th>Date</th></tr>
+      ${cands.map(c=>`<tr class="link" onclick="go('#/candidates/${c.id}')">
+        <td class="name-cell"><div class="primary">${esc(c.name)}</div><div class="secondary mono">${c.id}</div></td>
+        <td>${stateBadge("Offer "+c.offer)}</td>
+        <td class="mono">${esc(c.offerDate||"—")}</td>
+      </tr>`).join("")}
+    </table></div></div>`}
+  `;
+}
+
+function tabClosure(r){
+  return `
+    ${capabilityBar(["Close Job Posting"])}
+    ${r.closure ? `
+      <div class="card"><div class="card-head"><h3>Closure Record</h3>${stateBadge(r.reqStatus)}</div><div class="card-pad">
+        <div class="kv">
+          <dt>Closed On</dt><dd class="mono">${esc(r.closure.closedOn)}</dd>
+          <dt>Closure Reason</dt><dd>${esc(r.closure.reason)}</dd>
+          <dt>Final Hiring Status</dt><dd>${stateBadge(r.closure.finalStatus)}</dd>
+          <dt>Remaining Candidates</dt><dd>${esc(r.closure.remainingCandidatesTreatment)}</dd>
+        </div>
+      </div></div>
+    ` : `<div class="card"><div class="empty">This requisition is still active — closure is initiated once the hiring need is fulfilled, withdrawn, or otherwise concluded (Stage 15).</div>
+      <div class="card-pad" style="border-top:1px solid var(--line);">${actionButton("Close Job Posting","Close Job Posting")} ${bdrChip('closureTreatment')}</div>
+    </div>`}
+  `;
+}
+
+/* =====================================================================
+   CANDIDATES — global list + detail (Sections 10.6–10.12, 15)
+   ===================================================================== */
+function pageCandidatesList(){
+  setCrumbs([{label:"Dashboard", href:"#/dashboard"}, {label:"Candidates"}]);
+  return `
+    <div class="page-head"><div>
+      <div class="eyebrow">Candidate Pipeline · §10.6–10.12</div>
+      <h1>Candidates</h1>
+      <div class="page-sub">Every candidate — direct application or manual headhunting entry — across all requisitions, with duplicate flags, scoring, screening, interviews, hiring decision and offer status.</div>
+    </div></div>
+    ${capabilityBar(["View Candidate Pipeline","View Duplicate Flags","View Resume vs. JD Score"])}
+    <div class="card">
+      <div class="scrollx"><table class="dt">
+        <tr><th>Candidate</th><th>Requisition</th><th>Source</th><th>State</th><th>Resume/JD Score</th></tr>
+        ${CANDIDATES.map(c=>{ const req=reqOf(c.reqId); return `<tr class="link" onclick="go('#/candidates/${c.id}')">
+          <td class="name-cell"><div class="primary">${esc(c.name)}</div><div class="secondary mono">${c.id}</div></td>
+          <td>${esc(req.title)} <span class="mono" style="color:var(--ink-faint)">(${req.id})</span></td>
+          <td>${esc(c.source)}</td>
+          <td>${stateBadge(c.state)}</td>
+          <td>${c.score?`<span class="mono" style="font-weight:600">${c.score.value}</span>`:'—'}</td>
+        </tr>`; }).join("")}
+      </table></div>
+    </div>
+  `;
+}
+
+function skillChips(list, cls){ return `<div class="pill-row">${list.map(s=>`<span class="skill-chip ${cls}">${esc(s)}</span>`).join("")||'<span style="color:var(--ink-faint);font-size:12px;">None</span>'}</div>`; }
+
+function pageCandidate(id){
+  const c = candOf(id);
+  if(!c){ setCrumbs([{label:"Dashboard",href:"#/dashboard"},{label:"Candidates",href:"#/candidates"},{label:"Not found"}]); return `<div class="empty">Candidate ${esc(id)} not found.</div>`; }
+  const r = reqOf(c.reqId);
+  setCrumbs([{label:"Dashboard",href:"#/dashboard"},{label:"Candidates",href:"#/candidates"},{label:c.name}]);
+
+  // Which single section should already be expanded — the one matching where this
+  // candidate actually sits in the pipeline right now. Everything earlier collapses
+  // to a one-line summary; nothing later has content yet.
+  const openKey = c.offer && c.offer!=="Not Applicable" ? "offer"
+    : c.decision ? "decision"
+    : (c.interviews && c.interviews.length) ? "interviews"
+    : c.screening ? "screening"
+    : c.score ? "score" : "";
+
+  const snapshot = [
+    c.score ? {n:c.score.value+"/100", l:"Resume/JD Score"} : null,
+    c.screening ? {n:c.screening.status, l:"Screening"} : null,
+    (c.interviews&&c.interviews.length) ? {n:c.interviews.length, l:"Interview Round(s)"} : null,
+    c.decision ? {n:c.decision.status, l:"Hiring Decision"} : null,
+    (c.offer&&c.offer!=="Not Applicable") ? {n:c.offer, l:"Offer Acceptance"} : null,
+  ].filter(Boolean);
+
+  return `
+    <div class="page-head"><div>
+      <div class="eyebrow mono">${c.id} · applied via ${esc(c.source)} on ${esc(c.appliedOn)}</div>
+      <h1>${esc(c.name)}</h1>
+      <div class="page-sub">Applying for <a onclick="go('#/requisitions/${r.id}')" style="color:var(--accent-ink);font-weight:600;">${esc(r.title)}</a> · ${esc(r.location)} · <span class="mono">${r.id}</span></div>
+    </div>${stateBadge(c.state)}</div>
+    ${capabilityBar(["View Candidate Pipeline","View Duplicate Flags","View Resume vs. JD Score","Generate / Edit Screening Questions","View Screening Evaluation","Record Interview Evaluation","Approve / Reject Hiring Decision*","Update Offer Acceptance Status"])}
+
+    ${snapshot.length ? `<div class="grid" style="grid-template-columns:repeat(${snapshot.length},1fr);margin-bottom:16px;">
+      ${snapshot.map(s=>`<div class="stat"><div class="n" style="font-size:16px;">${esc(String(s.n))}</div><div class="l">${esc(s.l)}</div></div>`).join("")}
+    </div>` : ""}
+
+    ${c.duplicate ? `<div class="callout ${c.duplicate.resolved?'info':'warning'}" style="margin-bottom:16px;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 4.5a7 7 0 0 0-10.6 9M6.5 19.5a7 7 0 0 0 10.6-9"/><path d="M6.5 4.5v4.5H11M17.5 19.5V15H13"/></svg><div><b>Duplicate Detection${tip('A duplicate flag never silently deletes or merges a candidate record — human review is required to confirm or dismiss it (§10.6). Exact matching rules: Business Decision Required.')}</b>${esc(c.duplicate.reason)} ${c.duplicate.possibleMatch?`Possible match: <a onclick="go('#/candidates/${esc(c.duplicate.possibleMatch.split(' ')[0])}')" style="font-weight:600;color:inherit;text-decoration:underline;">${esc(c.duplicate.possibleMatch)}</a>.`:""}</div></div>` : ""}
+
+    ${c.score ? (grade("View Resume vs. JD Score")==="-" ? accordion("Resume vs. JD Score", "Restricted", `
+        <div class="empty">${esc(state.role)} does not have access to Resume vs. JD Score under RBAC §12.</div>
+      `, false) : accordion("Resume vs. JD Score", `${c.score.value}/100 — ${c.score.matched.length} matched, ${c.score.missing.length} missing`, `
+        <div class="note-line">${aiChip("AI-assisted · decision support")}<span>Explainable evidence, never presented as objective or bias-free (§10.7).</span></div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
+          <div class="mono" style="font-size:32px;font-weight:600;">${c.score.value}<span style="font-size:14px;color:var(--ink-faint);">/100</span></div>
+          <div class="progress" style="flex:1;"><i style="width:${c.score.value}%;"></i></div>
+        </div>
+        <div class="grid grid-2">
+          <div><div class="subhead">Matched Skills</div>${skillChips(c.score.matched,'match')}</div>
+          <div><div class="subhead">Missing Skills</div>${skillChips(c.score.missing,'missing')}</div>
+        </div>
+        <div class="subhead" style="margin-top:14px;">Explanation</div>
+        <p style="color:var(--ink-soft);">${esc(c.score.explanation)}</p>
+        <div style="margin-top:12px;">${actionButton("View Resume vs. JD Score","Override score")}</div>
+      `, openKey==="score")) : `<div class="card" style="margin-bottom:10px;"><div class="empty">Not yet scored — pending duplicate resolution or resume submission.</div></div>`}
+
+    ${c.screening ? ((grade("Generate / Edit Screening Questions")==="-" && grade("View Screening Evaluation")==="-") ? accordion("Screening", "Restricted", `
+        <div class="empty">${esc(state.role)} does not have access to Screening questions or evaluation under RBAC §12.</div>
+      `, false) : accordion("Screening", c.screening.evalSummary ? c.screening.evalSummary : c.screening.status, `
+        ${c.screening.questions ? `<div class="subhead">Screening Questions ${aiChip('AI-generated, reviewer-editable')}</div>
+        <ul style="margin:0 0 14px;padding-left:18px;">${c.screening.questions.map(q=>`<li style="margin-bottom:4px;">${esc(q)}</li>`).join("")}</ul>` : ""}
+        ${c.screening.evalSummary ? `<div class="subhead">Screening Evaluation ${tip('Generated questions, candidate responses, transcript, recording and AI evaluation are stored as distinct, separately labeled elements — never merged into one record (§10.8).')}</div><div class="note-line">${aiChip('AI evaluation support')}<span>${esc(c.screening.evalSummary)}</span></div>` : `<div class="empty">Awaiting screening session.</div>`}
+      `, openKey==="screening")) : ""}
+
+    ${c.interviews && c.interviews.length ? accordion("Interviews", c.interviews.map(iv=>`${iv.type.replace(' Round','')}: ${iv.outcome!=="—"?iv.outcome:iv.status}`).join(" · "), `
+        <div class="scrollx"><table class="dt">
+          <tr><th>Round</th><th>Participants</th><th>Status</th><th>Outcome</th><th>Notes</th></tr>
+          ${c.interviews.map(iv=>`<tr><td>${esc(iv.type)}</td><td>${esc(iv.participants)}</td><td>${stateBadge(iv.status==="Completed"?"Interview Complete":"Interviewing")}</td><td>${esc(iv.outcome)}</td><td>${esc(iv.notes||"—")}</td></tr>`).join("")}
+        </table></div>
+      `, openKey==="interviews") : ""}
+
+    ${c.decision ? accordion("Hiring Decision", `${c.decision.status}${c.decision.by?' — '+c.decision.by:''}`, `
+        <div class="kv">
+          <dt>Decision-Maker</dt><dd>${esc(c.decision.by||"—")}</dd>
+          <dt>Date</dt><dd class="mono">${esc(c.decision.date||"—")}</dd>
+          <dt>Reason / Comments</dt><dd>${esc(c.decision.reason||"—")}</dd>
+        </div>
+        <div class="note-line" style="margin-top:10px;margin-bottom:0;">${tip('AI never makes or influences the final hiring decision (§10.11, §17).')}<span>Human decision-maker only. ${bdrChip('approvalHierarchy')}</span></div>
+      `, openKey==="decision") : ""}
+
+    ${c.offer && c.offer!=="Not Applicable" ? accordion("Offer Acceptance Status", c.offer+(c.offerDate?" — "+c.offerDate:""), `
+        <div class="kv"><dt>Status Date</dt><dd class="mono">${esc(c.offerDate||"—")}</dd></div>
+        <div class="note-line" style="margin-top:10px;margin-bottom:0;">${tip('Talent tracks acceptance status only — it does not generate, issue, send, or negotiate the offer itself (out of scope, §7, §10.12).')}<span>Status tracking only — offer roll-out is out of scope.</span></div>
+      `, openKey==="offer") : ""}
+
+    ${c.notes && c.notes.length ? noteBlock(c.notes) : ""}
+  `;
+}
+
+/* =====================================================================
+   JOB POSTINGS (Sections 10.5, 10.13, 11)
+   ===================================================================== */
+function pagePostingsList(){
+  setCrumbs([{label:"Dashboard", href:"#/dashboard"}, {label:"Job Postings"}]);
+  const withPostings = REQS.filter(r=>r.linkedin && r.linkedin.status && r.linkedin.status!=="Not Started");
+  return `
+    <div class="page-head"><div>
+      <div class="eyebrow">Job Postings · §10.5, §10.13</div>
+      <h1>Job Postings</h1>
+      <div class="page-sub">LinkedIn posts advertising Approved requisitions, published using the 6S-owned account. States: Not Started → Pending Publication → Live → Closed / Expired / Rejected.</div>
+    </div></div>
+    <div class="card">
+      <div class="scrollx"><table class="dt">
+        <tr><th>Posting</th><th>Requisition</th><th>Status</th><th>Published On</th></tr>
+        ${withPostings.map(r=>`<tr class="link" onclick="go('#/postings/${r.id}')">
+          <td class="name-cell"><div class="primary">${esc(r.title)}</div><div class="secondary mono">${r.id}</div></td>
+          <td>${esc(r.location)}</td>
+          <td>${stateBadge(r.linkedin.status)}</td>
+          <td class="mono">${esc(r.linkedin.publishedOn||"—")}</td>
+        </tr>`).join("")}
+      </table></div>
+    </div>
+  `;
+}
+function pagePosting(id){
+  const r = reqOf(id);
+  if(!r){ return `<div class="empty">Posting not found.</div>`; }
+  setCrumbs([{label:"Dashboard", href:"#/dashboard"},{label:"Job Postings", href:"#/postings"},{label:r.title}]);
+  return `
+    <div class="page-head"><div><div class="eyebrow mono">${r.id}</div><h1>${esc(r.title)} — Job Posting</h1></div>${stateBadge(r.linkedin.status)}</div>
+    ${tabLinkedIn(r)}
+    <div style="margin-top:14px;"><button class="btn" onclick="go('#/requisitions/${r.id}')">Open full requisition workspace →</button></div>
+  `;
+}
+
+/* =====================================================================
+   APPROVALS QUEUE (Section 10.4, 11, 12 — cross-cutting)
+   ===================================================================== */
+function pageApprovals(){
+  setCrumbs([{label:"Dashboard", href:"#/dashboard"}, {label:"Approvals"}]);
+  const reqPending = REQS.filter(r=>r.reqStatus==="Pending Approval");
+  const jdPending = REQS.filter(r=>r.jdStatus==="Pending Approval" && r.reqStatus!=="Pending Approval");
+  const liPending = REQS.filter(r=>r.linkedin && r.linkedin.status==="Pending Publication");
+  const decisionPending = CANDIDATES.filter(c=>c.decision && c.decision.status==="Pending Decision");
+  return `
+    <div class="page-head"><div>
+      <div class="eyebrow">Approval Gates · §10.4, §12</div>
+      <h1>Approvals</h1>
+      <div class="page-sub">Every gate below requires an authorized human action — AI never approves on its own behalf. Exact approval hierarchy and escalation thresholds are ${bdrChip('approvalHierarchy')}.</div>
+    </div></div>
+    ${capabilityBar(["Approve Requisition*","Approve JD*","Approve LinkedIn Post*","Approve / Reject Hiring Decision*"])}
+
+    <div class="card" style="margin-bottom:14px;"><div class="card-head"><h3>Requisition Approvals</h3><span class="hint">${reqPending.length} pending</span></div>
+      ${reqPending.length? `<div class="scrollx"><table class="dt"><tr><th>Requisition</th><th>Location</th><th>Raised</th><th></th></tr>
+        ${reqPending.map(r=>`<tr class="link" onclick="go('#/requisitions/${r.id}/approval')"><td class="name-cell"><div class="primary">${esc(r.title)}</div><div class="secondary mono">${r.id}</div></td><td>${esc(r.location)}</td><td class="mono">${esc(r.raisedOn)}</td><td>${actionButton("Approve Requisition*","Approve")}</td></tr>`).join("")}
+      </table></div>` : `<div class="empty">Nothing pending.</div>`}
+    </div>
+
+    <div class="card" style="margin-bottom:14px;"><div class="card-head"><h3>JD Approvals</h3><span class="hint">${jdPending.length} pending</span></div>
+      ${jdPending.length? `<div class="scrollx"><table class="dt"><tr><th>Requisition</th><th>Location</th><th></th></tr>
+        ${jdPending.map(r=>`<tr class="link" onclick="go('#/requisitions/${r.id}/jd')"><td class="name-cell"><div class="primary">${esc(r.title)}</div><div class="secondary mono">${r.id}</div></td><td>${esc(r.location)}</td><td>${actionButton("Approve JD*","Approve")}</td></tr>`).join("")}
+      </table></div>` : `<div class="empty">Nothing pending.</div>`}
+    </div>
+
+    <div class="card" style="margin-bottom:14px;"><div class="card-head"><h3>LinkedIn Post Approvals</h3><span class="hint">${liPending.length} pending</span></div>
+      ${liPending.length? `<div class="scrollx"><table class="dt"><tr><th>Requisition</th><th></th></tr>
+        ${liPending.map(r=>`<tr class="link" onclick="go('#/requisitions/${r.id}/linkedin')"><td class="name-cell"><div class="primary">${esc(r.title)}</div><div class="secondary mono">${r.id}</div></td><td>${actionButton("Approve LinkedIn Post*","Approve & Publish")}</td></tr>`).join("")}
+      </table></div>` : `<div class="empty">Nothing pending.</div>`}
+    </div>
+
+    <div class="card"><div class="card-head"><h3>Hiring Decisions</h3><span class="hint">${decisionPending.length} pending</span></div>
+      ${decisionPending.length? `<div class="scrollx"><table class="dt"><tr><th>Candidate</th><th>Requisition</th><th></th></tr>
+        ${decisionPending.map(c=>`<tr class="link" onclick="go('#/candidates/${c.id}')"><td class="name-cell"><div class="primary">${esc(c.name)}</div><div class="secondary mono">${c.id}</div></td><td>${esc(reqOf(c.reqId).title)}</td><td>${actionButton("Approve / Reject Hiring Decision*","Decide")}</td></tr>`).join("")}
+      </table></div>` : `<div class="empty">Nothing pending.</div>`}
+    </div>
+  `;
+}
+
+/* =====================================================================
+   MARKET INTELLIGENCE (Part II — Sections 24–34)
+   ===================================================================== */
+/* =====================================================================
+   AUDIT TRAIL (Section 14)
+   ===================================================================== */
+const SAMPLE_AUDIT = [
+  {ts:"2026-09-07 11:02", actor:"RM — S. Iyer", action:"Budget flagged for review", ref:"REQ-1050", detail:"Client confirmed budget ceiling is firm; escalated to Chief of Staff for awareness."},
+  {ts:"2026-08-20 09:14", actor:"Consultant — P. Nair", action:"Offer acceptance status updated", ref:"CAN-3201 → Accepted", detail:"Communicated outside the system per candidate confirmation call."},
+  {ts:"2026-08-12 16:40", actor:"RM — S. Iyer / Chief of Staff — M. Bose", action:"Approve/reject hiring decision recorded", ref:"CAN-3201 → Approved", detail:"Unanimous positive feedback across rounds."},
+  {ts:"2026-08-11 10:05", actor:"System", action:"Duplicate flag raised", ref:"CAN-3403", detail:"Pending duplicate check on new candidate record."},
+  {ts:"2026-08-08 14:22", actor:"Chief of Staff — M. Bose", action:"LinkedIn post approved & published", ref:"REQ-1050", detail:"Published via 6S-owned account."},
+  {ts:"2026-07-21 12:00", actor:"System / AI", action:"Duplicate flag raised", ref:"CAN-3303", detail:"Matching email domain and near-identical resume filename hash vs. CAN-3301 — pending human review."},
+  {ts:"2026-07-17 09:30", actor:"Chief of Staff — M. Bose", action:"JD approved", ref:"REQ-1042 v3", detail:"—"},
+  {ts:"2026-07-15 08:50", actor:"RM — S. Iyer", action:"Requisition approved", ref:"REQ-1042", detail:"Aligned with Q3 scale-up plan."},
+  {ts:"2026-04-22 17:00", actor:"RM — S. Iyer", action:"Job posting closed", ref:"REQ-1031", detail:"Reason: Position filled — candidate accepted offer."},
+];
+function pageAudit(){
+  setCrumbs([{label:"Dashboard", href:"#/dashboard"}, {label:"Audit Trail"}]);
+  const canView = grade("View Audit Trail") !== "-";
+  return `
+    <div class="page-head"><div>
+      <div class="eyebrow">Audit Trail · §14</div>
+      <h1>Audit Trail</h1>
+      <div class="page-sub">Every material action is audited — actor, timestamp, action, and previous/new value where applicable. Audit records are immutable.</div>
+    </div></div>
+    ${capabilityBar(["View Audit Trail"])}
+    ${!canView ? `<div class="card"><div class="empty">${esc(state.role)} does not have View access to the Audit Trail under RBAC §12.</div></div>` : `
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-head"><h3>Recent Activity</h3><span class="hint">illustrative sample entries</span></div>
+      <div class="scrollx"><table class="dt">
+        <tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Reference</th><th>Detail</th></tr>
+        ${SAMPLE_AUDIT.map(a=>`<tr><td class="mono">${esc(a.ts)}</td><td>${esc(a.actor)}</td><td>${esc(a.action)}</td><td class="mono">${esc(a.ref)}</td><td style="color:var(--ink-soft);">${esc(a.detail)}</td></tr>`).join("")}
+      </table></div>
+    </div>
+    <div class="card"><div class="card-head"><h3>Audited Event Categories</h3></div><div class="card-pad">
+      <div class="pill-row">${AUDIT_CATEGORIES.map(c=>`<span class="skill-chip">${esc(c)}</span>`).join("")}</div>
+    </div></div>
+    `}
+  `;
+}
+
+/* =====================================================================
+   ROUTER
+   ===================================================================== */
+function parseHash(){
+  const h = (location.hash || "#/dashboard").replace(/^#\/?/, "");
+  return h.split("/").filter(Boolean).map(decodeURIComponent);
+}
+function render(){
+  const parts = parseHash();
+  const root = parts[0] || "dashboard";
+  let html = "", activeNav = root;
+
+  try{
+    switch(root){
+      case "dashboard": html = pageDashboard(); break;
+      case "overview": html = pageOverview(); break;
+      case "roles": html = pageRoles(); break;
+      case "requisitions":
+        html = parts[1] ? pageRequisition(parts[1], parts[2]) : pageRequisitionsList();
+        break;
+      case "candidates":
+        html = parts[1] ? pageCandidate(parts[1]) : pageCandidatesList();
+        break;
+      case "postings":
+        html = parts[1] ? pagePosting(parts[1]) : pagePostingsList();
+        break;
+      case "approvals": html = pageApprovals(); break;
+      case "audit": html = pageAudit(); break;
+      default: html = pageDashboard(); activeNav = "dashboard";
+    }
+  }catch(err){
+    html = `<div class="card"><div class="empty">Something went wrong rendering this view.<br><span class="mono" style="font-size:11px;">${esc(err.message)}</span></div></div>`;
+    console.error(err);
+  }
+
+  document.getElementById("content").innerHTML = html;
+  renderSidebar(activeNav);
+  window.scrollTo(0,0);
+}
+
+window.addEventListener("hashchange", render);
+renderRoleSelect();
+if(!location.hash) location.hash = "#/dashboard";
+render();
+</script>
